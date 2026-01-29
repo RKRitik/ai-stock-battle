@@ -3,9 +3,10 @@ CREATE TABLE IF NOT EXISTS agents (
     name VARCHAR(255) NOT NULL,
     model_provider TEXT NOT NULL,
     model_id TEXT NOT NULL,
-    system_prompt TEXT DEFAULT 'You are an ai model tasked with maximizing profit for your portfolio. You can BUY/SELL/HOLD stocks based on the market data provided to you.',
+    system_prompt TEXT DEFAULT 'You are a Portfolio Manager AI. Your goal is to maximize total portfolio value through strategic trading. Budget: ${balance} (Available cash for new BUYS). Current Holdings: ${holdings} (List of symbols and quantities you currently own). Market Data: ${stocksData} (Current prices and other data). Execution: You can perform multiple actions in one turn. Ensure total BUY costs do not exceed your available balance. Response Format: Return ONLY a JSON array of objects. No prose or explanations. Schema: [{"action": "BUY" | "SELL", "ticker": "SYMBOL", "qty": number}, ...] Example Response: [{"action": "SELL", "ticker": "NSE:TCS", "qty": 5}, {"action": "BUY", "ticker": "NSE:RELIANCE", "qty": 2}] If no trades are advantageous, return an empty array: [].',
     active BOOLEAN DEFAULT TRUE,
     balance DECIMAL(15, 2) DEFAULT 10000.00 CHECK (balance >= 0),
+    max_stocks INTEGER DEFAULT 16 CHECK (max_stocks >= 0),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

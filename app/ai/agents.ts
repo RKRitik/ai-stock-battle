@@ -1,20 +1,16 @@
 import { generateText } from "ai";
 import { getModel } from "./registry";
-import { sql } from "bun";
+import { Stock, Agent } from "../schema";
 
-const agents = await sql`SELECT * FROM agents WHERE active = ${true}`;
-const responses: any[] = [];
-agents.forEach((agent: any) => {
+export function runAgent(agent: Agent, stocksData: Stock[], holdings: { symbol: string, qty: number }[]) {
     const model = getModel(agent.model_provider, agent.model_id);
+    const trimmedStocks = stocksData.slice(0, agent.max_stocks);
+    let finalPrompt = agent.system_prompt.replace('${balance}', agent.balance.toString());
+    finalPrompt = finalPrompt.replace('${holdings}', JSON.stringify(holdings));
+    finalPrompt = finalPrompt.replace('${stocksData}', JSON.stringify(trimmedStocks));
     const response = generateText({
         model,
-        prompt: agent.system_prompt,
+        prompt: finalPrompt,
     });
-    responses.push(response);
-});
-
-Promise.all(responses).then((responses) => {
-    console.log(responses.map((response) => {
-        return response.text;
-    }));
-});
+    return response;
+}
