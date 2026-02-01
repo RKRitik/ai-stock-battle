@@ -3,7 +3,6 @@ import { Stock, stocksResponseSchema, Agent, agentSchema, holdingSchema } from "
 
 export async function getAgents(): Promise<Agent[]> {
     const agents = await sql`SELECT * FROM agents WHERE active = ${true}`;
-    console.log(agents);
     const parsed = agentSchema.array().safeParse(agents);
     if (!parsed.success) {
         console.log(parsed.error.issues);
@@ -14,6 +13,16 @@ export async function getAgents(): Promise<Agent[]> {
 
 export async function updateAgentBalance(agent_id: string, balance: number) {
     await sql`UPDATE agents SET balance = ${balance} WHERE id = ${agent_id}`;
+}
+
+export async function getAgent(agent_id: string) {
+    const agent = await sql`SELECT * FROM agents WHERE id = ${agent_id}`;
+    const parsed = agentSchema.safeParse(agent[0]);
+    if (!parsed.success) {
+        console.log(parsed.error.issues);
+        return null;
+    }
+    return parsed.data;
 }
 
 export async function getStocksData(): Promise<{ status: boolean, data: Stock[] | null }> {

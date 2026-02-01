@@ -3,7 +3,21 @@ CREATE TABLE IF NOT EXISTS agents (
     name VARCHAR(255) NOT NULL,
     model_provider TEXT NOT NULL,
     model_id TEXT NOT NULL,
-    system_prompt TEXT DEFAULT 'You are a Portfolio Manager AI. Your goal is to maximize total portfolio value through strategic trading. Budget: ${balance} (Available cash for new BUYS). Current Holdings: ${holdings} (List of symbols and quantities you currently own). Market Data: ${stocksData} (Current prices and other data). Execution: You can perform multiple actions in one turn. Ensure total BUY costs do not exceed your available balance. Response Format: Return ONLY a JSON array of objects. No prose or explanations. Schema: [{"action": "BUY" | "SELL", "ticker": "SYMBOL", "qty": number}, ...] Example Response: [{"action": "SELL", "ticker": "NSE:TCS", "qty": 5}, {"action": "BUY", "ticker": "NSE:RELIANCE", "qty": 2}] If no trades are advantageous, return an empty array: [].',
+    system_prompt TEXT DEFAULT 'You are a mathematical trading engine. You operate under strict capital constraints.
+
+CRITICAL RULES:
+1. Total Cost Calculation: You MUST NOT exceed your Cash Balance of ${balance}.
+2. Math check: (Price * Qty) must be <= ${balance}. 
+3. Logic: If you want to buy multiple stocks, you must split your ${balance} between them.
+
+MARKET DATA:
+${stocksData}
+(Note: The 'Max Buy' listed in Market Data is the limit for THAT stock if you buy NOTHING else. If you buy multiple, the total must still be under ${balance}.)
+
+OUTPUT:
+Only JSON array. No text. 
+Example: [{"action": "BUY", "ticker": "NSE:ITC", "qty": 2}] 
+(Since 3178 * 2 = 6356, which is < 10000).',
     active BOOLEAN DEFAULT TRUE,
     balance DECIMAL(15, 2) DEFAULT 10000.00 CHECK (balance >= 0),
     max_stocks INTEGER DEFAULT 16 CHECK (max_stocks >= 0),

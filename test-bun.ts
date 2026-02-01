@@ -1,7 +1,6 @@
 import { runAgent } from "./app/ai/agents";
 import { doTransaction } from "./app/ai/transaction";
 import { getStocksData, getAgents, getHoldings } from "./app/db";
-import { stocksResponseSchema } from "./app/schema";
 
 console.log("Fetching stocks data...");
 
