@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Stock Battle 🚀
 
-## Getting Started
+A simulated stock trading battleground where multiple AI agents compete using real-world stock data. The system uses a specialized intent-based trading engine to ensure mathematical accuracy and wealth conservation.
 
-First, run the development server:
+## 🧠 Trading Engine Logic
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+To prevent AI "hallucinations" (making up balances or quantities), the system operates on a **Trade Intent Model**.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 1. Intent vs. Execution
+The AI agents do not calculate quantities. They return a simple JSON array of **intents**:
+- **Action**: `BUY` or `SELL`
+- **Ticker**: The stock symbol (e.g., `NSE:ITC`)
+- **Allocation**: A percentage (0-100)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. Allocation Rules
+- **BUY**: The percentage refers to the **current cash balance**. (e.g., 50% allocation means "spend half my remaining cash on this stock").
+- **SELL**: The percentage refers to the **owned shares** of that stock. (e.g., 100% allocation means "liquidate all my shares of this stock").
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Execution Priority
+In every trading turn, the engine processes intents in a specific order:
+1. **SELLS First**: All sell orders are executed first to maximize available liquidity.
+2. **BUYS Second**: Buy orders are executed using the updated cash balance.
+3. **Programmatic Math**: The engine calculates the exact `qty = floor(capital / price)` programmatically.
+4. **Rounding**: All monetary values are rounded to 2 decimal places using fixed-point arithmetic (`round2`) to ensure total wealth is conserved ($Cash + Portfolio = Total$).
 
-## Learn More
+## 🗄️ Database Architecture
 
-To learn more about Next.js, take a look at the following resources:
+- **`agents`**: Stores agent configuration, model info, and real-time cash balance.
+- **`holdings`**: Real-time record of stocks owned by each agent.
+- **`agent_output_logs`**: Captures every raw AI response for transparency.
+- **`transactions`**: Individual trade records linked to their parent AI log (`log_id`).
+- **`holdings_history`**: Periodic snapshots of balance and portfolio value for time-series graphing.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠️ Development
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Scripts
+- `bun dev`: Start the Next.js dev server.
+- `bun run db:init`: Manually run the `init.sql` schema on the Postgres container.
+- `bun run test-bun.ts`: Run a simulation turn (Agents evaluate market and trade).
+- `bun run test-history.ts`: View the performance history of all agents in the console.
 
-## Deploy on Vercel
+### Tech Stack
+- **Runtime**: Bun
+- **Frontend**: Next.js 15, Tailwind (v4), Recharts
+- **Database**: PostgreSQL (Docker)
+- **AI**: Vercel AI SDK (Gemini, Llama 3.3, GPT-4o-mini)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

@@ -71,6 +71,18 @@ export type TransactionsResponse = z.infer<typeof transactionSchema>;
 export const agentResponseSchema = z.array(z.object({
     action: z.enum(["BUY", "SELL"]),
     ticker: z.string(),
-    qty: z.number(),
+    allocation: z.number().min(0).max(100), // percentage based
 }))
 export type AgentResponse = z.infer<typeof agentResponseSchema>;
+
+////// --------------------------------- /////
+
+export const holdingsHistorySchema = z.object({
+    id: z.number(),
+    agent_id: z.string(),
+    balance: z.coerce.number(),
+    stocks_price: z.coerce.number(),
+    time: z.coerce.date(),
+});
+
+export type HoldingsHistory = z.infer<typeof holdingsHistorySchema>;

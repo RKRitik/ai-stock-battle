@@ -11,3 +11,7 @@ export const cleanResponse = (raw: string) => {
     .replace(/\n?```$/, "")     // Remove ending ```
     .trim();                    // Remove accidental whitespace
 };
+
+
+// Helper to round currency to 2 decimal places
+export const round2 = (num: number) => Math.round(num * 100) / 100;
