@@ -64,6 +64,12 @@ export const transactionSchema = z.object({
 export type Transaction = z.infer<typeof transactionSchema>;
 export type TransactionsResponse = z.infer<typeof transactionSchema>;
 
+export const transactionsWithAgentSchema = transactionSchema.extend({
+    name: z.string(),
+});
+
+export type TransactionsWithAgent = z.infer<typeof transactionsWithAgentSchema>;
+export type TransactionsWithAgentResponse = z.infer<typeof transactionsWithAgentSchema>;
 
 
 //////// --------------------------------- /////

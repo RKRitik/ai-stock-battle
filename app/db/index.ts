@@ -1,5 +1,5 @@
 import { fetch, sql } from "bun";
-import { Stock, stocksResponseSchema, Agent, agentSchema, holdingSchema, holdingsHistorySchema, Holding } from "../schema";
+import { Stock, stocksResponseSchema, Agent, agentSchema, holdingSchema, holdingsHistorySchema, Holding, transactionSchema, transactionsWithAgentSchema } from "../schema";
 
 export async function getAgents(): Promise<Agent[]> {
     const agents = await sql`SELECT * FROM agents WHERE active = ${true}`;
@@ -86,6 +86,16 @@ export async function recordAgentHoldingsSnapshot(agent_id: string, balance: num
 export async function getHoldingsHistory(agent_id: string) {
     const response = await sql`SELECT * FROM holdings_history WHERE agent_id = ${agent_id} ORDER BY time ASC`;
     const parsed = holdingsHistorySchema.array().safeParse(response);
+    if (!parsed.success) {
+        console.log(parsed.error.issues);
+        return [];
+    }
+    return parsed.data;
+}
+
+export async function getLastTransactions(count = 10) {
+    const response = await sql`SELECT t.*, a.name FROM transactions t join agents a on t.agent_id = a.id ORDER BY t.time DESC LIMIT ${count}`;
+    const parsed = transactionsWithAgentSchema.array().safeParse(response);
     if (!parsed.success) {
         console.log(parsed.error.issues);
         return [];
