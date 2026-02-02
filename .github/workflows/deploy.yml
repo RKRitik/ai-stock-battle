@@ -40,5 +40,4 @@ jobs:
           # Optional: Use cache to make subsequent builds faster
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-	    NEXT_PUBLIC_STOCK_URL=${{ secrets.NEXT_PUBLIC_STOCK_URL }}
+          build-args: NEXT_PUBLIC_STOCK_URL=${{ secrets.NEXT_PUBLIC_STOCK_URL }}
