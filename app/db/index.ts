@@ -27,7 +27,7 @@ export async function getAgent(agent_id: string) {
 
 export async function getStocksData(): Promise<{ status: boolean, data: Stock[] | null }> {
     try {
-        const response = await fetch(process.env.NEXT_PUBLIC_STOCK_URL!);
+        const response = await fetch(process.env.STOCK_URL!);
         const data = await response.json();
         const parsed = stocksResponseSchema.safeParse(data);
         if (!parsed.success) {
