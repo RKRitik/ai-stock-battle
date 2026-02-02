@@ -1,5 +1,5 @@
 import { fetch, sql } from "bun";
-import { Stock, stocksResponseSchema, Agent, agentSchema, holdingSchema, holdingsHistorySchema } from "../schema";
+import { Stock, stocksResponseSchema, Agent, agentSchema, holdingSchema, holdingsHistorySchema, Holding } from "../schema";
 
 export async function getAgents(): Promise<Agent[]> {
     const agents = await sql`SELECT * FROM agents WHERE active = ${true}`;
@@ -41,7 +41,7 @@ export async function getStocksData(): Promise<{ status: boolean, data: Stock[] 
     }
 }
 
-export async function getHoldings(agent_id: string) {
+export async function getHoldings(agent_id: string): Promise<Holding[]> {
     const response = await sql`SELECT * from holdings where agent_id = ${agent_id}`;
     const parsed = holdingSchema.array().safeParse(response);
     if (!parsed.success) {
