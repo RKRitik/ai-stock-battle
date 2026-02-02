@@ -2,10 +2,15 @@
 import { useEffect, useState } from "react";
 import { CartesianGrid, Legend, Line, LineChart, XAxis, YAxis } from "recharts";
 
+interface ChartPoint {
+  index: number;
+  [key: string]: any;
+}
+
 const strokes = ["#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#0088fe"];
 
 export default function Chart() {
-  const [chartData, setChartData] = useState([]);
+  const [chartData, setChartData] = useState<ChartPoint[]>([]);
 
   useEffect(() => {
     const eventSource = new EventSource("/api/chart");
