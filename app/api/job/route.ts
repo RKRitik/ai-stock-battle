@@ -3,7 +3,10 @@ import { doTransaction } from "@/app/ai/transaction";
 import { getAgents, getHoldings, getStocksData } from "@/app/db";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const isSimulate = searchParams.get("simulate") === "true";
+
     // Fetch stocks data
     const result = await getStocksData();
 
@@ -13,7 +16,7 @@ export async function GET() {
 
     const agents = await getAgents();
 
-    if(!agents.length) {
+    if (!agents.length) {
         return NextResponse.json({ error: "No agents found" }, { status: 404 });
     }
 
@@ -22,8 +25,10 @@ export async function GET() {
         agents.map(async agent => {
             const holdings = await getHoldings(agent.id);
             const res: { text: string } = await runAgent(agent, result.data!, holdings.map(h => ({ symbol: h.symbol, qty: h.qty })));
-            await doTransaction(agent.id, res.text, result.data!);
-            return { agent: agent.name, result: res };
+            if (!isSimulate) {
+                await doTransaction(agent.id, res.text, result.data!);
+            }
+            return { agent: agent.name, result: res.text };
         })
     );
 
