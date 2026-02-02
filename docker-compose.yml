@@ -16,11 +16,11 @@ services:
     image: ghcr.io/rkritik/ai-stock-battle:latest
     container_name: stock_battle_app
     restart: always
-    platform: linux/amd
+    platform: linux/amd64
     ports:
      - "127.0.0.1:8082:3000"
     environment: 
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRESS_PASSWORD}&db:5432/stock_battle
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}&db:5432/stock_battle
     depends_on:
       - db
   #pgadmin:
