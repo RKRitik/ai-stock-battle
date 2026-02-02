@@ -12,6 +12,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Next.js telemetry disable (optional, saves a tiny bit of network/cpu)
 ENV NEXT_TELEMETRY_DISABLED=1
+ARG NEXT_PUBLIC_STOCK_URL
+ENV NEXT_PUBLIC_STOCK_URL=$NEXT_PUBLIC_STOCK_URL
 RUN bun run build
 
 
