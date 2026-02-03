@@ -104,13 +104,8 @@ export async function getLastTransactions(count = 10) {
 }
 
 export async function getFormattedChartData() {
-  // fetch all history joined with agent names in one go
   const rawHistory = await sql<HistoryRow[]>`
-    SELECT 
-      a.name, 
-      h.balance, 
-      h.stocks_price, 
-      h.time 
+    SELECT a.name, h.balance, h.stocks_price, h.time 
     FROM holdings_history h 
     JOIN agents a ON h.agent_id = a.id 
     ORDER BY h.time ASC
@@ -119,23 +114,28 @@ export async function getFormattedChartData() {
   const timeMap: Record<string, any> = {};
 
   rawHistory.forEach((row: HistoryRow) => {
-    // normalize time to the nearest minute bucket
     const d = new Date(row.time);
-    d.setSeconds(0, 0); 
-    const bucketKey = d.toISOString();
+    // Convert to IST (Asia/Kolkata) string for grouping
+    const istString = d.toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
 
-    if (!timeMap[bucketKey]) {
-      timeMap[bucketKey] = { 
-        time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    // We use a simplified key for the X-axis label
+    // If it's a new day, we show the date; otherwise, just the time
+    if (!timeMap[istString]) {
+      timeMap[istString] = { 
+        displayTime: istString, 
         rawTime: d.getTime() 
       };
     }
 
-    // add this agent's total value to this specific time bucket
-    // use the agent's name as the key for Recharts
-    timeMap[bucketKey][row.name] = Number(row.balance) + Number(row.stocks_price);
+    timeMap[istString][row.name] = Number(row.balance) + Number(row.stocks_price);
   });
 
-  // sort the buckets chronologically
   return Object.values(timeMap).sort((a, b) => a.rawTime - b.rawTime);
 }
