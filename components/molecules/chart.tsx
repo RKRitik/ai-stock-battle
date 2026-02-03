@@ -36,13 +36,20 @@ export default function Chart({ data }: { data: any[] }) {
           />
 
           <Tooltip 
-            formatter={(value: number | undefined) => 
-              value ? [`₹${value.toLocaleString('en-IN')}`, "Wealth"] : ["₹0", "Wealth"]
-            }
+            formatter={(value: number | undefined, name: string) => [
+              value ? `₹${value.toLocaleString('en-IN')}` : "₹0", 
+              name // This uses "Gemini", "Llama", etc., instead of a static "Wealth"
+            ]}
             labelStyle={{ fontWeight: 'bold', color: '#374151' }}
-            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+            contentStyle={{ 
+              borderRadius: '12px', 
+              border: 'none', 
+              boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+              padding: '12px' 
+            }}
+            itemSorter={(item) => Number(item.value) * -1}
           />
-          
+
           <Legend verticalAlign="top" height={36}/>
 
           <ReferenceLine 
