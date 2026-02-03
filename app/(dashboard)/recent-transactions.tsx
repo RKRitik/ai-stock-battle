@@ -9,7 +9,8 @@ export default async function TransactionsDashboard() {
                     <div className="flex-1">
                         <div className="flex items-center gap-2">
                             <p className="text-sm font-medium">{tx.name}</p>
-                            <Badge variant={tx.side === 'BUY' ? 'default' : 'secondary'} className="text-xs">
+                            {/* variant={tx.side === 'BUY' ? 'default' : 'secondary'}  */}
+                            <Badge className="text-xs">
                                 {tx.side.toUpperCase()}
                             </Badge>
                         </div>
