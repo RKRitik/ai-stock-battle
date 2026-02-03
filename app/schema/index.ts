@@ -95,8 +95,28 @@ export type HoldingsHistory = z.infer<typeof holdingsHistorySchema>;
 
 //////// ------------------------------- /////
 export interface HistoryRow {
-  name: string;
-  balance: number;
-  stocks_price: number;
-  time: Date;
+    name: string;
+    balance: number;
+    stocks_price: number;
+    time: Date;
 }
+
+
+////// --------------------------------- /////
+
+const outputLogsSchema = z.object({
+    id: z.number(),
+    agent_id: z.string(),
+    output: z.string(),
+    created_at: z.coerce.date(),
+});
+
+// export type Output = z.infer<typeof outputLogsSchema>;
+// export type OutputResponse = z.infer<typeof outputLogsSchema>;
+
+export const outputsWithAgentSchema = outputLogsSchema.extend({
+    name: z.string(),
+});
+
+// export type OutputWithAgent = z.infer<typeof transactionsWithAgentSchema>;
+// export type OutputWithAgentResponse = z.infer<typeof transactionsWithAgentSchema>;

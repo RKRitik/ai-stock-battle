@@ -1,5 +1,5 @@
 import { fetch, sql } from "bun";
-import { Stock, stocksResponseSchema, Agent, agentSchema, holdingSchema, holdingsHistorySchema, Holding, transactionSchema, transactionsWithAgentSchema, HistoryRow  } from "../schema";
+import { Stock, stocksResponseSchema, Agent, agentSchema, holdingSchema, holdingsHistorySchema, Holding, transactionSchema, transactionsWithAgentSchema, HistoryRow, outputsWithAgentSchema } from "../schema";
 
 export async function getAgents(): Promise<Agent[]> {
     const agents = await sql`SELECT * FROM agents WHERE active = ${true}`;
@@ -104,38 +104,49 @@ export async function getLastTransactions(count = 10) {
 }
 
 export async function getFormattedChartData() {
-  const rawHistory = await sql<HistoryRow[]>`
+    const rawHistory = await sql<HistoryRow[]>`
     SELECT a.name, h.balance, h.stocks_price, h.time 
     FROM holdings_history h 
     JOIN agents a ON h.agent_id = a.id 
     ORDER BY h.time ASC
   `;
 
-  const timeMap: Record<string, any> = {};
+    const timeMap: Record<string, any> = {};
 
-  rawHistory.forEach((row: HistoryRow) => {
-    const d = new Date(row.time);
-    // Convert to IST (Asia/Kolkata) string for grouping
-    const istString = d.toLocaleString("en-IN", {
-      timeZone: "Asia/Kolkata",
-      day: "2-digit",
-      month: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
+    rawHistory.forEach((row: HistoryRow) => {
+        const d = new Date(row.time);
+        // Convert to IST (Asia/Kolkata) string for grouping
+        const istString = d.toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        });
+
+        // We use a simplified key for the X-axis label
+        // If it's a new day, we show the date; otherwise, just the time
+        if (!timeMap[istString]) {
+            timeMap[istString] = {
+                displayTime: istString,
+                rawTime: d.getTime()
+            };
+        }
+
+        timeMap[istString][row.name] = Number(row.balance) + Number(row.stocks_price);
     });
 
-    // We use a simplified key for the X-axis label
-    // If it's a new day, we show the date; otherwise, just the time
-    if (!timeMap[istString]) {
-      timeMap[istString] = { 
-        displayTime: istString, 
-        rawTime: d.getTime() 
-      };
+    return Object.values(timeMap).sort((a, b) => a.rawTime - b.rawTime);
+}
+
+
+export async function getLastInvocations(count = 10) {
+    const response = await sql`SELECT i.*, a.name FROM agent_output_logs i join agents a on i.agent_id = a.id ORDER BY i.time DESC LIMIT ${count}`;
+    const parsed = outputsWithAgentSchema.array().safeParse(response);
+    if (!parsed.success) {
+        console.log(parsed.error.issues);
+        return [];
     }
-
-    timeMap[istString][row.name] = Number(row.balance) + Number(row.stocks_price);
-  });
-
-  return Object.values(timeMap).sort((a, b) => a.rawTime - b.rawTime);
+    return parsed.data;
 }

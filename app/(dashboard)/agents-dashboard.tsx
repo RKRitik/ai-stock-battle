@@ -1,17 +1,27 @@
 import { getAgents } from "@/app/db";
+const strokes = ["#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#0088fe"];
 export default async function AgentsDashboard() {
     const agents = await getAgents();
     return (
-        <div className="p-4">
-            <h1 className="text-2xl font-bold mb-4">Agents Dashboard</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {agents.map(agent => (
-                    <div key={agent.id} className="border p-4 rounded-lg">
-                        <h2 className="text-xl font-bold">{agent.name}</h2>
-                        <p>Balance: ₹{agent.balance}</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {agents.map((agent, index) => (
+                <div
+                    key={agent.id}
+                    className="p-4 rounded-lg border border-border hover:bg-muted/30 transition-colors"
+                >
+                    <div className="flex items-center gap-2 mb-2">
+                        <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: strokes[index % strokes.length] }}
+                        />
+                        <p className="text-sm font-medium">{agent.name}</p>
                     </div>
-                ))}
-            </div>
+                    <p className="text-l font-semibold leading-4">
+                        ${agent.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">Cash Balance</p>
+                </div>
+            ))}
         </div>
     );
 }
