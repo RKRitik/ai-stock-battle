@@ -36,9 +36,9 @@ export default function Chart({ data }: { data: any[] }) {
           />
 
           <Tooltip 
-            formatter={(value: number | undefined, name: string) => [
+            formatter={(value: number | undefined, name: string | undefined) => [
               value ? `₹${value.toLocaleString('en-IN')}` : "₹0", 
-              name // This uses "Gemini", "Llama", etc., instead of a static "Wealth"
+              name || 'Unknown Agent' // This uses "Gemini", "Llama", etc., instead of a static "Wealth"
             ]}
             labelStyle={{ fontWeight: 'bold', color: '#374151' }}
             contentStyle={{ 
