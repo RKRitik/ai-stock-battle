@@ -142,7 +142,7 @@ export async function getFormattedChartData() {
 
 
 export async function getLastInvocations(count = 10) {
-    const response = await sql`SELECT i.*, a.name FROM agent_output_logs i join agents a on i.agent_id = a.id ORDER BY i.time DESC LIMIT ${count}`;
+    const response = await sql`SELECT i.*, a.name FROM agent_output_logs i join agents a on i.agent_id = a.id ORDER BY i.created_at DESC LIMIT ${count}`;
     const parsed = outputsWithAgentSchema.array().safeParse(response);
     if (!parsed.success) {
         console.log(parsed.error.issues);
