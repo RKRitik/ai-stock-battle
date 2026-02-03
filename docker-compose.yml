@@ -20,7 +20,7 @@ services:
     ports:
      - "127.0.0.1:8082:3000"
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/stock_battle?max=5
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/stock_battle
       STOCK_URL: ${STOCK_URL}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       GROQ_API_KEY: ${GROQ_API_KEY}
