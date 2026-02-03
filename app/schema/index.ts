@@ -92,3 +92,11 @@ export const holdingsHistorySchema = z.object({
 });
 
 export type HoldingsHistory = z.infer<typeof holdingsHistorySchema>;
+
+//////// ------------------------------- /////
+export interface HistoryRow {
+  name: string;
+  balance: number;
+  stocks_price: number;
+  time: Date;
+}

@@ -1,5 +1,5 @@
 import { fetch, sql } from "bun";
-import { Stock, stocksResponseSchema, Agent, agentSchema, holdingSchema, holdingsHistorySchema, Holding, transactionSchema, transactionsWithAgentSchema } from "../schema";
+import { Stock, stocksResponseSchema, Agent, agentSchema, holdingSchema, holdingsHistorySchema, Holding, transactionSchema, transactionsWithAgentSchema, HistoryRow  } from "../schema";
 
 export async function getAgents(): Promise<Agent[]> {
     const agents = await sql`SELECT * FROM agents WHERE active = ${true}`;
@@ -105,7 +105,7 @@ export async function getLastTransactions(count = 10) {
 
 export async function getFormattedChartData() {
   // fetch all history joined with agent names in one go
-  const rawHistory = await sql`
+  const rawHistory = await sql<HistoryRow[]>`
     SELECT 
       a.name, 
       h.balance, 
@@ -118,7 +118,7 @@ export async function getFormattedChartData() {
 
   const timeMap: Record<string, any> = {};
 
-  rawHistory.forEach((row) => {
+  rawHistory.forEach((row: HistoryRow) => {
     // normalize time to the nearest minute bucket
     const d = new Date(row.time);
     d.setSeconds(0, 0); 
