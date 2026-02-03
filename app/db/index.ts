@@ -102,3 +102,30 @@ export async function getLastTransactions(count = 10) {
     }
     return parsed.data;
 }
+
+export async function getFormattedChartData() {
+  const agents = await getAgents();
+  const allHoldings = await Promise.all(
+    agents.map(async (agent) => {
+      const history = await getHoldingsHistory(agent.id);
+      return { name: agent.name, history };
+    })
+  );
+
+  // Group by time so all agents appear on the same X-axis point
+  const timeMap: Record<string, any> = {};
+
+  allHoldings.forEach(({ name, history }) => {
+    history.forEach((entry) => {
+      const timestamp = new Date(entry.time).toLocaleTimeString();
+      if (!timeMap[timestamp]) {
+        timeMap[timestamp] = { time: timestamp };
+      }
+      timeMap[timestamp][name] = entry.balance + entry.stocks_price;
+    });
+  });
+
+  return Object.values(timeMap).sort((a, b) => 
+    new Date(a.time).getTime() - new Date(b.time).getTime()
+  );
+}

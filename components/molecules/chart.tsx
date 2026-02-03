@@ -1,48 +1,36 @@
 "use client";
-import { useEffect, useState } from "react";
-import { CartesianGrid, Legend, Line, LineChart, XAxis, YAxis } from "recharts";
-
-interface ChartPoint {
-  index: number;
-  [key: string]: any;
-}
+import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 
 const strokes = ["#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#0088fe"];
 
-export default function Chart() {
-  const [chartData, setChartData] = useState<ChartPoint[]>([]);
+export default function Chart({ data }: { data: any[] }) {
+  if (!data || data.length === 0) return <div>No data available</div>;
 
-  useEffect(() => {
-    const eventSource = new EventSource("/api/chart");
-    eventSource.onmessage = (event) => {
-      const newPoint = JSON.parse(event.data);
-      setChartData((prev) => [
-        ...prev,
-        { ...newPoint, index: prev.length + 1 }
-      ]);
-    };
-    return () => eventSource.close();
-  }, []);
-
-  if (chartData.length === 0) return <div>Loading...</div>;
+  // Get agent names by looking at keys that aren't 'time'
+  const agentNames = Object.keys(data[0]).filter((key) => key !== "time");
 
   return (
-    <LineChart style={{ width: "100%", aspectRatio: 1.618, maxWidth: 800, margin: "auto" }} responsive data={chartData}>
-      <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-      <XAxis />
-      <YAxis width="auto" />
-      <Legend />
-      {Object.keys(chartData[0]).map((key, index) => (
-        <Line
-          key={key}
-          type="monotone"
-          dataKey={key}
-          stroke={strokes[index % strokes.length]}
-          strokeWidth={2}
-          dot={false}
-          isAnimationActive={false} 
-        />
-      ))}
-    </LineChart>
+    <div style={{ width: "100%", height: 400 }}>
+      <ResponsiveContainer>
+        <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="time" />
+          <YAxis domain={['auto', 'auto']} />
+          <Tooltip />
+          <Legend />
+          {agentNames.map((name, index) => (
+            <Line
+              key={name}
+              type="monotone"
+              dataKey={name}
+              stroke={strokes[index % strokes.length]}
+              strokeWidth={2}
+              dot={false}
+              isAnimationActive={true}
+            />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
