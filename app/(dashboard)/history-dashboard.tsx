@@ -1,4 +1,5 @@
 import { getFormattedChartData} from "@/app/db";
+import Chart from "@/components/molecules/chart";
 
 export default async function HistoryDashboard() {
     const chartData = await getFormattedChartData();
