@@ -18,7 +18,12 @@ export default function HistoryChart({ data }: HistoryChartProps) {
             <LineChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
                 <XAxis dataKey="displayTime" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" />
+                <YAxis
+                    stroke="#6b7280"
+                    domain={['auto', 'auto']}
+                    tickFormatter={(value) => `₹${value.toLocaleString('en-IN')}`}
+                    width={80}
+                />
                 <Tooltip
                     formatter={(value: number | undefined, name: string | undefined) => [
                         value ? `₹${value.toLocaleString('en-IN')}` : "₹0",
