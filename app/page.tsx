@@ -17,7 +17,7 @@ export default function Home() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-shrink-0">
           <Card className="lg:col-span-1 p-6">
-            <h2 className="text-lg font-semibold mb-2">Agent Cash Balances</h2>
+            <h2 className="text-lg font-semibold mb-2">Agent Performance</h2>
             <AgentsDashboard />
           </Card>
 

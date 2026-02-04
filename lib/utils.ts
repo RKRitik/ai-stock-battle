@@ -18,12 +18,12 @@ export const round2 = (num: number) => Math.round(num * 100) / 100;
 
 export const AGENT_COLORS = [
   "#6366f1", // Indigo
-  "#10b981", // Emerald
   "#f59e0b", // Amber
-  "#ef4444", // Red
+  "#f97316", // Orange
+  "#10b981", // Emerald
   "#8b5cf6", // Violet
   "#06b6d4", // Cyan
-  "#f97316", // Orange
+  "#ef4444", // Red
 ];
 
 export const getAgentColor = (name: string) => {

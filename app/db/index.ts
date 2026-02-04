@@ -1,5 +1,5 @@
 import { fetch, sql } from "bun";
-import { Stock, stocksResponseSchema, Agent, agentSchema, holdingSchema, holdingsHistorySchema, Holding, transactionSchema, transactionsWithAgentSchema, HistoryRow, outputsWithAgentSchema } from "../schema";
+import { Stock, stocksResponseSchema, Agent, agentSchema, holdingSchema, holdingsHistorySchema, Holding, transactionSchema, transactionsWithAgentSchema, HistoryRow, outputsWithAgentSchema, agentPerformanceMarkersSchema } from "../schema";
 
 export async function getAgents(): Promise<Agent[]> {
     const agents = await sql`SELECT * FROM agents WHERE active = ${true}`;
@@ -147,6 +147,29 @@ export async function getLastInvocations(count = 10) {
     if (!parsed.success) {
         console.log(parsed.error.issues);
         return [];
+    }
+    return parsed.data;
+}
+
+export async function getAgentPerformanceMarkers(agent_id: string) {
+    const stats = await sql`
+        WITH initial AS (
+            SELECT balance FROM holdings_history 
+            WHERE agent_id = ${agent_id} ORDER BY time ASC LIMIT 1
+        ),
+        start_of_day AS (
+            SELECT (balance + stocks_price) as wealth FROM holdings_history 
+            WHERE agent_id = ${agent_id} AND time < CURRENT_DATE 
+            ORDER BY time DESC LIMIT 1
+        )
+        SELECT 
+            (SELECT balance FROM initial) as initial_wealth,
+            COALESCE((SELECT wealth FROM start_of_day), (SELECT balance FROM initial)) as start_of_day_wealth;
+    `;
+    const parsed = agentPerformanceMarkersSchema.safeParse(stats[0]);
+    if (!parsed.success) {
+        console.log(parsed.error.issues);
+        return null;
     }
     return parsed.data;
 }

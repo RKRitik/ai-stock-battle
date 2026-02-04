@@ -121,3 +121,13 @@ export const outputsWithAgentSchema = outputLogsSchema.extend({
 
 // export type OutputWithAgent = z.infer<typeof transactionsWithAgentSchema>;
 // export type OutputWithAgentResponse = z.infer<typeof transactionsWithAgentSchema>;
+
+
+////// --------------------------------- /////
+
+export const agentPerformanceMarkersSchema = z.object({
+    initial_wealth: z.coerce.number(),
+    start_of_day_wealth: z.coerce.number(),
+});
+
+export type AgentPerformanceMarkers = z.infer<typeof agentPerformanceMarkersSchema>;
