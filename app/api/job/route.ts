@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     const agentResults = await Promise.all(
         agents.map(async agent => {
             const holdings = await getHoldings(agent.id);
-            const res: { text: string } = await runAgent(agent, result.data!, holdings.map(h => ({ symbol: h.symbol, qty: h.qty })));
+            const res: { text: string } = await runAgent(agent, result.data!, holdings.map(h => ({ symbol: h.symbol, qty: h.qty, avg_buy_price: h.avg_buy_price })));
             if (!isSimulate) {
                 await doTransaction(agent.id, res.text, result.data!);
             }

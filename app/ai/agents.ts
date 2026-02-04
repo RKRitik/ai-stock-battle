@@ -2,7 +2,7 @@ import { generateText } from "ai";
 import { getModel } from "./registry";
 import { Stock, Agent } from "../schema";
 
-export function runAgent(agent: Agent, stocksData: Stock[], holdings: { symbol: string, qty: number }[]) {
+export function runAgent(agent: Agent, stocksData: Stock[], holdings: { symbol: string, qty: number, avg_buy_price: number }[]) {
     const model = getModel(agent.model_provider, agent.model_id);
     const trimmedStocks = stocksData.slice(0, agent.max_stocks);
     let finalPrompt = agent.system_prompt.replace(/\${balance}/g, agent.balance.toString());
