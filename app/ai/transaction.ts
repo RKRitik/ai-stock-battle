@@ -59,11 +59,19 @@ export async function doTransaction(agent_id: string, responseString: string, st
             }
 
             if (qty > 0) {
+                // 1. Find if we already own this stock
+                const existingHolding = currentHoldings.find(h => h.symbol === ticker);
+                const oldQty = existingHolding?.qty || 0;
+                const oldAvg = Number(existingHolding?.avg_buy_price) || 0;
                 const totalCost = round2(qty * price);
+
+                // 2. Calculate the New Weighted Average
+                const newTotalQty = oldQty + qty;
+                const newAvgBuyPrice = round2(((oldQty * oldAvg) + (qty * price)) / newTotalQty);
                 try {
-                    await executeBuy(agent_id, ticker, qty, price, totalCost, logId);
+                    await executeBuy(agent_id, ticker, qty, price, totalCost, logId, newAvgBuyPrice);
                     currentBalance = round2(currentBalance - totalCost);
-                    console.log(`[BUY] Agent ${agent.name} bought ${qty} shares of ${ticker} at ${price} (Allocation: ${allocation}%)`);
+                    console.log(`[BUY] Agent ${agent.name} bought ${qty} shares of ${ticker} at ${price} (Allocation: ${allocation}%) New Avg Price: ${newAvgBuyPrice}`);
                 } catch (err) {
                     console.error(`Failed to execute BUY ${qty} shares of ${ticker} for ${agent.name}:`, err);
                 }

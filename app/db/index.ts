@@ -56,13 +56,13 @@ export async function logAgentOutput(agent_id: string, output: string) {
     return result[0].id as number;
 }
 
-export async function executeBuy(agent_id: string, ticker: string, qty: number, price: number, totalCost: number, log_id?: number) {
+export async function executeBuy(agent_id: string, ticker: string, qty: number, price: number, totalCost: number, log_id: number, newAvgPrice: number) {
     await sql.begin(async (tx) => {
         await tx`UPDATE agents SET balance = balance - ${totalCost} WHERE id = ${agent_id}`;
-        await tx`INSERT INTO holdings (agent_id, symbol, qty) 
-                 VALUES (${agent_id}, ${ticker}, ${qty})
-                 ON CONFLICT (agent_id, symbol) 
-                 DO UPDATE SET qty = holdings.qty + ${qty}`;
+        await tx`INSERT INTO holdings (agent_id, symbol, qty, avg_buy_price) 
+                 VALUES (${agent_id}, ${ticker}, ${qty}, ${newAvgPrice})
+                 ON CONFLICT (agent_id, symbol)
+                 DO UPDATE SET qty = holdings.qty + EXCLUDED.qty, avg_buy_price = EXCLUDED.avg_buy_price`;
         await tx`INSERT INTO transactions (agent_id, symbol, side, qty, price, log_id)
                  VALUES (${agent_id}, ${ticker}, 'BUY', ${qty}, ${price}, ${log_id || null})`;
     });
