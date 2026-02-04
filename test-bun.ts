@@ -15,7 +15,7 @@ const agents = await getAgents();
 
 agents.forEach(async agent => {
     const holdings = await getHoldings(agent.id);
-    runAgent(agent, result.data!, holdings.map(h => ({ symbol: h.symbol, qty: h.qty, h.avg_buy_price }))).then(res => {
+    runAgent(agent, result.data!, holdings.map(h => ({ symbol: h.symbol, qty: h.qty, avg_buy_price: h.avg_buy_price }))).then(res => {
         doTransaction(agent.id, res.text, result.data!);
     });
 });
