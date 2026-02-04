@@ -85,7 +85,7 @@ export async function doTransaction(agent_id: string, responseString: string, st
                 continue;
             }
 
-            const qtyToSell = Math.floor(holding.qty * (allocation / 100));
+            let qtyToSell = Math.floor(holding.qty * (allocation / 100));
             // If they want to sell a percentage but it floors to 0, sell 1 share instead
             if (qtyToSell === 0 && allocation > 0 && holding.qty > 0) {
                 qtyToSell = 1;
