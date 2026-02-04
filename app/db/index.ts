@@ -122,7 +122,7 @@ export async function getFormattedChartData() {
             month: "2-digit",
             hour: "2-digit",
             minute: "2-digit",
-            hour12: false,
+            hour12: true,
         });
 
         // We use a simplified key for the X-axis label

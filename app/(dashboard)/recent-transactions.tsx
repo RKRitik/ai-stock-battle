@@ -21,11 +21,12 @@ export default async function TransactionsDashboard() {
                     </div>
                     <p className="text-xs text-muted-foreground ml-4 shrink-0">
                         {tx.time.toLocaleString('en-IN', {
+                            timeZone: 'Asia/Kolkata',
                             day: '2-digit',
                             month: '2-digit',
                             hour: '2-digit',
                             minute: '2-digit',
-                            hour12: false
+                            hour12: true
                         })}
                     </p>
                 </div>
