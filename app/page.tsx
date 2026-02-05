@@ -1,4 +1,5 @@
 import AgentsDashboard from "./(dashboard)/agents-dashboard";
+import { Suspense } from "react";
 import RecentTransactions from "./(dashboard)/recent-transactions";
 import HistoryDashboard from "./(dashboard)/history-dashboard";
 import AgentResponses from "./(dashboard)/responses-dashboard";
@@ -18,12 +19,12 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-shrink-0">
           <Card className="lg:col-span-1 p-6">
             <h2 className="text-lg font-semibold mb-2">Agent Performance</h2>
-            <AgentsDashboard />
+            <Suspense fallback={<SkeletonCard />}><AgentsDashboard /></Suspense>
           </Card>
 
           <Card className="lg:col-span-2 p-6">
             <h2 className="text-lg font-semibold mb-2">Total Wealth Over Time</h2>
-            <HistoryDashboard />
+            <Suspense fallback={<SkeletonCard />}><HistoryDashboard /></Suspense>
           </Card>
         </div>
 
@@ -31,18 +32,26 @@ export default function Home() {
           <Card className="p-6 flex flex-col overflow-hidden">
             <h2 className="text-lg font-semibold mb-2 flex-shrink-0">Recent Transactions</h2>
             <div className="overflow-y-auto flex-1">
-              <RecentTransactions />
+              <Suspense fallback={<SkeletonCard />}>
+                <RecentTransactions />
+              </Suspense>
             </div>
           </Card>
 
           <Card className="p-6 flex flex-col overflow-hidden">
             <h2 className="text-lg font-semibold mb-4 flex-shrink-0">Agent Invocations</h2>
             <div className="overflow-y-auto flex-1">
+              <Suspense fallback={<SkeletonCard />}>
               <AgentResponses />
+              </Suspense>
             </div>
           </Card>
         </div>
       </div>
     </main>
   );
+}
+
+function SkeletonCard() {
+  return <h3 className='text-md'>Loading...</h3>
 }
