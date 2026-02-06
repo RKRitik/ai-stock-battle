@@ -3,16 +3,10 @@ import { getAgentColor } from "@/lib/utils";
 
 export default async function AgentsDashboard() {
     const agents = await getAgents();
-    const stocksData = await getStocksData();
-
-    function getLivePrice(symbol: string) {
-        if (!stocksData.data) return 0;
-        return stocksData.data.find((stock) => stock.ticker === symbol)?.live_price || 0;
-    }
 
     const agentsData = await Promise.all(agents.map(async (agent) => {
         const holdings = await getHoldings(agent.id);
-        const portfolioValue = holdings.reduce((acc, h) => acc + (h.qty * getLivePrice(h.symbol)), 0);
+        const portfolioValue = holdings.reduce((acc, h) => acc + (h.qty * h.live_price), 0);
         const stats = await getAgentPerformanceMarkers(agent.id) || { initial_wealth: agent.balance, start_of_day_wealth: agent.balance };
 
         const totalWealth = agent.balance + portfolioValue;

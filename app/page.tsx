@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import RecentTransactions from "./(dashboard)/recent-transactions";
 import HistoryDashboard from "./(dashboard)/history-dashboard";
 import AgentResponses from "./(dashboard)/responses-dashboard";
+import AgentStocks from "./(dashboard)/agent-stocks";
 import { Card } from "@/components/ui/card";
 import { ModeToggle } from "@/components/mode-toggle";
 
@@ -46,7 +47,7 @@ export default function Home() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-[500px]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-[500px]">
           <Card className="p-6 flex flex-col overflow-hidden border-primary/10 bg-card/50 backdrop-blur-sm hover:border-primary/20 transition-all duration-300">
             <h2 className="text-lg font-semibold mb-4 flex-shrink-0 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-primary" />
@@ -68,6 +69,16 @@ export default function Home() {
               <Suspense fallback={<SkeletonCard />}>
                 <AgentResponses />
               </Suspense>
+            </div>
+          </Card>
+
+          <Card className="p-6 flex flex-col overflow-hidden border-primary/10 bg-card/50 backdrop-blur-sm hover:border-primary/20 transition-all duration-300">
+            <h2 className="text-lg font-semibold mb-4 flex-shrink-0 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary" />
+              Agent Portfolio
+            </h2>
+            <div className="overflow-y-auto flex-1 pr-2 custom-scrollbar">
+              <AgentStocks />
             </div>
           </Card>
         </div>

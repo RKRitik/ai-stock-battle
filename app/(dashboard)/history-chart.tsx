@@ -31,6 +31,7 @@ export default function HistoryChart({ data }: HistoryChartProps) {
                     fontSize={12}
                     tickFormatter={(value) => `₹${value.toLocaleString('en-IN')}`}
                     width={80}
+                    domain={['auto', 'auto']}
                     tickLine={false}
                     axisLine={false}
                 />

@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS holdings (
     symbol TEXT NOT NULL,
     qty INTEGER DEFAULT 0 CHECK (qty >= 0),
     avg_buy_price DECIMAL(15, 2) DEFAULT 0.00,
+    live_price DECIMAL(15, 2) DEFAULT 0.00,
     PRIMARY KEY (agent_id, symbol)
 );
 

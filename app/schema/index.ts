@@ -44,7 +44,8 @@ export const holdingSchema = z.object({
     agent_id: z.string(),
     symbol: z.string(),
     qty: z.number(),
-    avg_buy_price: z.coerce.number()
+    avg_buy_price: z.coerce.number(),
+    live_price: z.coerce.number(),
 });
 
 export type Holding = z.infer<typeof holdingSchema>;
