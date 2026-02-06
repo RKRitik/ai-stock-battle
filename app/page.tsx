@@ -78,7 +78,9 @@ export default function Home() {
               Agent Portfolio
             </h2>
             <div className="overflow-y-auto flex-1 pr-2 custom-scrollbar">
-              <AgentStocks />
+              <Suspense fallback={<SkeletonCard />}>
+                <AgentStocks />
+              </Suspense>
             </div>
           </Card>
         </div>
