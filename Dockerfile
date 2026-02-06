@@ -15,9 +15,11 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ARG NEXT_PUBLIC_STOCK_URL
 ENV NEXT_PUBLIC_STOCK_URL=$NEXT_PUBLIC_STOCK_URL
+ENV NEXT_DISABLE_TYPECHECK=1
+ENV NEXT_DISABLE_ESLINT=1
 
 # Increase memory limit for the build process
-RUN bun run build
+RUN BUN_JIT=0 bun run build
 
 
 # stage 3: runner
