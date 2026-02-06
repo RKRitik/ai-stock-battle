@@ -7,23 +7,21 @@ export default async function TransactionsDashboard() {
     return (
         <div className="space-y-3 pr-2">
             {transactions.map((tx) => (
-                <div key={tx.id} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors flex-shrink-0">
+                <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl border border-primary/10 bg-background/40 hover:bg-primary/5 hover:border-primary/20 transition-all duration-300 group">
                     <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                            <p className="text-sm font-semibold" style={{ color: getAgentColor(tx.name) }}>{tx.name}</p>
-                            <Badge className="text-xs" variant={tx.side === 'BUY' ? 'default' : 'secondary'}>
+                        <div className="flex items-center gap-3">
+                            <p className="text-sm font-bold tracking-tight" style={{ color: getAgentColor(tx.name) }}>{tx.name}</p>
+                            <Badge className={`text-[10px] font-bold px-1.5 py-0 h-4 border-none ${tx.side === 'BUY' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
                                 {tx.side.toUpperCase()}
                             </Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                            {tx.qty} × {tx.symbol} @ ₹{tx.price.toFixed(2)}
+                        <p className="text-xs text-muted-foreground mt-1.5 font-medium">
+                            {tx.qty} × <span className="text-foreground/80 font-bold">{tx.symbol}</span> @ <span className="tabular-nums font-semibold">₹{tx.price.toFixed(2)}</span>
                         </p>
                     </div>
-                    <p className="text-xs text-muted-foreground ml-4 shrink-0">
+                    <p className="text-[10px] font-bold text-muted-foreground/60 tabular-nums">
                         {tx.time.toLocaleString('en-IN', {
                             timeZone: 'Asia/Kolkata',
-                            day: '2-digit',
-                            month: '2-digit',
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: true

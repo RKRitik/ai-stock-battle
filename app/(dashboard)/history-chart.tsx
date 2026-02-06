@@ -16,13 +16,23 @@ export default function HistoryChart({ data }: HistoryChartProps) {
     return (
         <ResponsiveContainer width="100%" height={300}>
             <LineChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
-                <XAxis dataKey="displayTime" stroke="#6b7280" />
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" opacity={0.3} vertical={false} />
+                <XAxis
+                    dataKey="displayTime"
+                    stroke="currentColor"
+                    className="text-muted-foreground"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                />
                 <YAxis
-                    stroke="#6b7280"
-                    domain={['auto', 'auto']}
+                    stroke="currentColor"
+                    className="text-muted-foreground"
+                    fontSize={12}
                     tickFormatter={(value) => `₹${value.toLocaleString('en-IN')}`}
                     width={80}
+                    tickLine={false}
+                    axisLine={false}
                 />
                 <Tooltip
                     formatter={(value: number | undefined, name: string | undefined) => [
@@ -30,19 +40,21 @@ export default function HistoryChart({ data }: HistoryChartProps) {
                         name || 'Unknown Agent'
                     ]}
                     contentStyle={{
-                        backgroundColor: '#fff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '0.5rem',
-                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                        backgroundColor: 'var(--background)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '0.75rem',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                        backdropFilter: 'blur(8px)',
                     }}
-                    labelStyle={{ color: '#000' }}
+                    itemStyle={{ fontSize: '12px' }}
+                    labelStyle={{ color: 'var(--foreground)', fontWeight: '600', marginBottom: '4px' }}
                 />
-                <Legend />
+                <Legend iconType="circle" />
                 <ReferenceLine
                     y={10000}
-                    stroke="#ef4444"
-                    strokeDasharray="3 3"
-                    label={{ position: 'right', value: 'Start (₹10k)', fontSize: 10, fill: '#ef4444', opacity: 0.6 }}
+                    stroke="oklch(0.6 0.2 25)"
+                    strokeDasharray="4 4"
+                    label={{ position: 'right', value: 'Start (₹10k)', fontSize: 10, fill: 'oklch(0.6 0.2 25)', opacity: 0.8, fontWeight: '500' }}
                 />
                 {agentNames.map((name) => (
                     <Line
