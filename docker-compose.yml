@@ -25,6 +25,7 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       GROQ_API_KEY: ${GROQ_API_KEY}
       GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY}
+      JOB_KEY: ${JOB_KEY}
     depends_on:
       - db
   #pgadmin:
