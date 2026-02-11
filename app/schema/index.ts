@@ -61,7 +61,7 @@ export const transactionSchema = z.object({
     qty: z.number(),
     price: z.number(),
     time: z.coerce.date(),
-    realized_pnl: z.number()
+    realized_pnl: z.coerce.number()
 });
 
 export type Transaction = z.infer<typeof transactionSchema>;
