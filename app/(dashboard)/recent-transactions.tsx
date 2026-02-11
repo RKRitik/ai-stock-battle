@@ -18,6 +18,11 @@ export default async function TransactionsDashboard() {
                         <p className="text-xs text-muted-foreground mt-1.5 font-medium">
                             {tx.qty} × <span className="text-foreground/80 font-bold">{tx.symbol}</span> @ <span className="tabular-nums font-semibold">₹{tx.price.toFixed(2)}</span>
                         </p>
+                        {tx.realized_pnl !== 0 && (
+                            <p className={`text-xs mt-1 font-medium ${tx.realized_pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {tx.realized_pnl > 0 ? '+' : ''}₹{tx.realized_pnl.toFixed(0)}
+                            </p>
+                        )}
                     </div>
                     <p className="text-[10px] font-bold text-muted-foreground/60 tabular-nums">
                         {tx.time.toLocaleString('en-IN', {
