@@ -72,8 +72,13 @@ export async function executeBuy(agent_id: string, ticker: string, qty: number, 
 export async function executeSell(agent_id: string, ticker: string, qtyToSell: number, price: number, totalCredit: number, log_id?: number) {
     await sql.begin(async (tx) => {
         //get avg buy price and calculate realized pnl
-        const [holding] = await tx`SELECT avg_buy_price FROM holdings WHERE agent_id = ${agent_id}`;
-        const avgBuyPrice = Number(holding?.avg_buy_price ?? 0);
+        const [holding] = await tx`
+            SELECT avg_buy_price 
+            FROM holdings 
+            WHERE agent_id = ${agent_id} 
+            AND symbol = ${ticker}
+        `;
+	const avgBuyPrice = Number(holding?.avg_buy_price ?? 0);
         const realizedPnl = (price - avgBuyPrice) * qtyToSell;
 	await tx`UPDATE agents SET balance = balance + ${totalCredit} WHERE id = ${agent_id}`;
         await tx`UPDATE holdings SET qty = qty - ${qtyToSell}, live_price = ${price} WHERE agent_id = ${agent_id} AND symbol = ${ticker}`;
