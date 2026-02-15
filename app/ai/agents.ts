@@ -5,9 +5,11 @@ import { Stock, Agent } from "../schema";
 export function runAgent(agent: Agent, stocksData: Stock[], holdings: { symbol: string, qty: number, avg_buy_price: number }[]) {
     const model = getModel(agent.model_provider, agent.model_id);
     const trimmedStocks = stocksData.slice(0, agent.max_stocks);
+    const time = new Date();
     let finalPrompt = agent.system_prompt.replace(/\${balance}/g, agent.balance.toString());
     finalPrompt = finalPrompt.replace(/\${holdings}/g, JSON.stringify(holdings));
     finalPrompt = finalPrompt.replace(/\${stocksData}/g, JSON.stringify(trimmedStocks));
+    finalPrompt = finalPrompt.replace(/\${time}/g, JSON.stringify(time));
     const response = generateText({
         model,
         prompt: finalPrompt,

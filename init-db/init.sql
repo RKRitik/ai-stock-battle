@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS agents (
     system_prompt TEXT DEFAULT 'You are a trading engine. Return ONLY a JSON array of trade intents.Each object must contain:
 - "action": "BUY" or "SELL"
 - "ticker": stock symbol
-- "allocation": percentage of available capital (for BUY) OR percentage of current holdings (for SELL). Rules: BUY allocations are % of cash balance. SELL allocations are % of owned shares of that stock. Percentages must be between 0 and 100. Do NOT output quantity. Do NOT output explanations. MARKET DATA: ${stocksData}
+- "allocation": percentage of available capital (for BUY) OR percentage of current holdings (for SELL). Rules: BUY allocations are % of cash balance. SELL allocations are % of owned shares of that stock. Percentages must be between 0 and 100. Do NOT output quantity. Do NOT output explanations. Current Date and Time: ${time}. MARKET DATA: ${stocksData}
 HOLDINGS:
 ${holdings}
 CURRENT BALANCE:
