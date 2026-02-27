@@ -1,5 +1,7 @@
-import { fetch, sql } from "bun";
+// Use global Bun if available (for VPS/Bun runtime) to avoid Next.js member resolution errors
+const sql = typeof Bun !== 'undefined' ? Bun.sql : ({} as any);
 import { Stock, stocksResponseSchema, Agent, agentSchema, holdingSchema, holdingsHistorySchema, Holding, transactionSchema, transactionsWithAgentSchema, HistoryRow, outputsWithAgentSchema, agentPerformanceMarkersSchema } from "../schema";
+import { getAngelOneMarketData } from "../api/angelone/market";
 
 export async function getAgents(): Promise<Agent[]> {
     const agents = await sql`SELECT * FROM agents WHERE active = ${true}`;
@@ -27,16 +29,23 @@ export async function getAgent(agent_id: string) {
 
 export async function getStocksData(): Promise<{ status: boolean, data: Stock[] | null }> {
     try {
+        const stocks = await getAngelOneMarketData();
+        console.log("Stocks data from angel one", stocks);
+        if (stocks && stocks.length > 0) {
+            return { status: true, data: stocks };
+        }
+
+        // Fallback or old method (can be removed once Angel One is stable)
         const response = await fetch(process.env.STOCK_URL!);
         const data = await response.json();
         const parsed = stocksResponseSchema.safeParse(data);
         if (!parsed.success) {
-            console.log(parsed.error.issues);
+            console.log("Fallback Stock Data Error:", parsed.error.issues);
             return { status: false, data: null }
         }
         return { status: true, data: parsed.data }
     } catch (error) {
-        console.log(error);
+        console.log("Market Data Fetch Error:", error);
         return { status: false, data: null }
     }
 }

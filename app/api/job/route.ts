@@ -4,14 +4,20 @@ import { getAgents, getHoldings, getStocksData } from "@/app/db";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
     const authHeader = request.headers.get("Authorization");
+    const querySecret = searchParams.get("secret");
     const jobKey = process.env.JOB_KEY;
-    if (jobKey && authHeader !== `Bearer ${jobKey}`) {
+
+    const isHeaderValid = jobKey && authHeader === `Bearer ${jobKey}`;
+    const isQueryValid = jobKey && querySecret === jobKey;
+
+    if (jobKey && !isHeaderValid && !isQueryValid) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
     const isSimulate = searchParams.get("simulate") === "true";
+
 
     // Fetch stocks data
     const result = await getStocksData();
