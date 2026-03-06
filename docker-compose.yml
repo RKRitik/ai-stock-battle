@@ -19,13 +19,10 @@ services:
     platform: linux/amd64
     ports:
      - "127.0.0.1:8082:3000"
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/stock_battle
-      STOCK_URL: ${STOCK_URL}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      GROQ_API_KEY: ${GROQ_API_KEY}
-      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY}
-      JOB_KEY: ${JOB_KEY}
     depends_on:
       - db
   #pgadmin:

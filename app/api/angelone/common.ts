@@ -5,7 +5,7 @@ import { API_ENDPOINTS } from './constants';
  * Common headers for Angel One SmartAPI
  * Reference: https://smartapi.angelone.in/docs/
  */
-const ANGEL_ONE_BASE_URL = 'https://apiconnect.angelone.in';
+const ANGEL_ONE_BASE_URL = process.env.ANGEL_ONE_BASE_URL || 'https://apiconnect.angelone.in';
 
 const getAngelOneHeaders = () => {
     const headers: Record<string, string> = {
@@ -29,7 +29,16 @@ const getAngelOneHeaders = () => {
 
 export const api = axios.create({
     baseURL: ANGEL_ONE_BASE_URL,
-    headers: getAngelOneHeaders(),
+    headers: {
+        ...getAngelOneHeaders(),
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    },
+    timeout: 30000,
+    // Add proxy support if defined in .env
+    ...(process.env.PROXY_URL && {
+        proxy: false, // Tell axios not to use default proxy settings
+        httpsAgent: new (require('https-proxy-agent').HttpsProxyAgent)(process.env.PROXY_URL)
+    })
 });
 
 // in memory cache
