@@ -1,5 +1,13 @@
-// Use global Bun if available (for VPS/Bun runtime) to avoid Next.js member resolution errors
-const sql = typeof Bun !== 'undefined' ? Bun.sql : ({} as any);
+// Fallback stub for environments where Bun is not available (e.g. standard Node.js or edge without Bun globals)
+const sqlStub = (() => {
+    const errorMessage = "Bun is not defined or Bun.sql is unavailable. This application currently relies on the Bun runtime for database operations. To run this in a non-Bun environment, please wire a standard Node.js SQL client (like 'postgres' or 'pg').";
+    const stub = (..._args: any[]) => { throw new Error(errorMessage); };
+    stub.begin = (..._args: any[]) => { throw new Error(errorMessage); };
+    stub.transaction = (..._args: any[]) => { throw new Error(errorMessage); };
+    return stub;
+})();
+
+const sql = typeof Bun !== 'undefined' ? Bun.sql : (sqlStub as any);
 import { Stock, stocksResponseSchema, Agent, agentSchema, holdingSchema, holdingsHistorySchema, Holding, transactionSchema, transactionsWithAgentSchema, HistoryRow, outputsWithAgentSchema, agentPerformanceMarkersSchema } from "../schema";
 import { getAngelOneMarketData } from "../api/angelone/market";
 

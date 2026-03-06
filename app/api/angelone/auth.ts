@@ -11,11 +11,21 @@ export async function login() {
         throw new Error("ANGEL_ONE_CLIENT_SECRET is missing in .env");
     }
 
+    const clientCode = process.env.ANGEL_ONE_CLIENT_ID;
+    const password = process.env.ANGEL_ONE_APP_PASSWORD;
+
+    if (!clientCode) {
+        throw new Error("ANGEL_ONE_CLIENT_ID is missing in .env");
+    }
+    if (!password) {
+        throw new Error("ANGEL_ONE_APP_PASSWORD is missing in .env");
+    }
+
     const totp = await generate({ secret });
 
     const body = {
-        clientcode: process.env.ANGEL_ONE_CLIENT_ID,
-        password: process.env.ANGEL_ONE_APP_PASSWORD,
+        clientcode: clientCode,
+        password: password,
         totp,
     }
     return api.post<LoginResponse>(API_ENDPOINTS.login, JSON.stringify(body))
@@ -43,16 +53,19 @@ export async function ensureAuthenticated() {
 
 export async function generateToken() {
     return api.post<LoginResponse>(API_ENDPOINTS.generateToken)
+        .then(response => response.data)
         .catch(e => {
-            console.log({ e });
+            console.error("Angel One: Generate Token Error", e.response?.data || e.message);
+            throw e;
         })
 }
 
 
-export function getProfile() {
-    api.get<ProfileResponse>(API_ENDPOINTS.profile).then(response => {
-        console.log({ response: response.data });
-    }).catch(e => {
-        console.log({ e });
-    })
+export async function getProfile() {
+    return api.get<ProfileResponse>(API_ENDPOINTS.profile)
+        .then(response => response.data)
+        .catch(e => {
+            console.error("Angel One: Get Profile Error", e.response?.data || e.message);
+            throw e;
+        })
 }

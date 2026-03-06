@@ -62,7 +62,10 @@ api.interceptors.response.use(
     (error) => {
         const status = error.response?.status;
         if (status === 401) {
-            console.error('Angel One API: Session expired or Unauthorized.');
+            console.error('Angel One API: Session expired or Unauthorized. Clearing session...');
+            angelSession.jwtToken = '';
+            angelSession.refreshToken = '';
+            angelSession.feedToken = '';
         } else if (status === 429) {
             console.error('Angel One API: Rate limit exceeded.');
         }

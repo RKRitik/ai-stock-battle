@@ -11,19 +11,37 @@ export interface MarketDataRequest {
     };
 }
 
+export interface MarketDataItemLTP {
+    exchange: string;
+    tradingSymbol: string;
+    symbolToken: string;
+    ltp: number;
+}
+
+export interface MarketDataItemOHLC extends MarketDataItemLTP {
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+}
+
+export interface MarketDataItemFULL extends MarketDataItemOHLC {
+    volume: number;
+    percentChange: number;
+    lastTradedTime?: string;
+    avgPrice?: number;
+    totalQtyTraded?: number;
+    avgVolume?: number;
+    "52WeekHigh"?: number;
+    "52WeekLow"?: number;
+    upperCircuit?: number;
+    lowerCircuit?: number;
+}
+
 export type MarketDataResponse = AngelApiWrapper<{
-    fetched: {
+    fetched: MarketDataItemFULL[]; // Defaulting to FULL as it's the most common use case in this app
+    unfetched: {
         exchange: string;
-        tradingSymbol: string;
         symbolToken: string;
-        ltp: number;
-        open: number;
-        high: number;
-        low: number;
-        close: number;
-        percentChange: number;
-        volume: number;
-        // more fields in FULL mode
     }[];
-    unfetched: unknown[];
 }>;

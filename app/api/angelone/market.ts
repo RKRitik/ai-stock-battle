@@ -56,20 +56,18 @@ export async function getAngelOneMarketData(): Promise<Stock[]> {
             const ticker = mapped ? mapped[0] : item.tradingSymbol;
             const name = mapped ? mapped[1].name : item.tradingSymbol;
 
-            const anyItem = item as any;
-
             return {
                 ticker: ticker,
                 stock_name: name,
                 live_price: item.ltp,
                 "day_change_%": item.percentChange || 0,
-                "52_week_high": anyItem["52WeekHigh"] || item.high || 0,
-                "52_week_low": anyItem["52WeekLow"] || item.low || 0,
-                current_volume: item.volume || anyItem.totalQtyTraded || 0,
+                "52_week_high": item["52WeekHigh"] || item.high || 0,
+                "52_week_low": item["52WeekLow"] || item.low || 0,
+                current_volume: item.volume || item.totalQtyTraded || 0,
                 current_day_high: item.high,
                 current_day_low: item.low,
-                daily_average_volume: anyItem.avgPrice || item.volume || 0,
-                volatility: 1.5, // Mocked
+                daily_average_volume: item.avgVolume || item.volume || 0,
+                volatility: null,
                 "p/e_ratio": null,
                 eps: null
             };
