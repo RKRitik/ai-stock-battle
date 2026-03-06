@@ -30,12 +30,12 @@ export async function getAgent(agent_id: string) {
 export async function getStocksData(): Promise<{ status: boolean, data: Stock[] | null }> {
     try {
         const stocks = await getAngelOneMarketData();
-        console.log("Stocks data from angel one", stocks);
         if (stocks && stocks.length > 0) {
+            console.log("Stocks data from angel one received");
             return { status: true, data: stocks };
         }
 
-        // Fallback or old method (can be removed once Angel One is stable)
+        // Fallback stocks api
         const response = await fetch(process.env.STOCK_URL!);
         const data = await response.json();
         const parsed = stocksResponseSchema.safeParse(data);
