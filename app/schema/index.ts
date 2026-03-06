@@ -13,7 +13,6 @@ export const stocksSchema = z.object({
     current_day_high: z.coerce.number(),
     current_day_low: z.coerce.number(),
     daily_average_volume: z.coerce.number(),
-    volatility: z.coerce.number(),
     "p/e_ratio": z.preprocess(naToNull, z.coerce.number().nullable()),
     eps: z.preprocess(naToNull, z.coerce.number().nullable()),
 });

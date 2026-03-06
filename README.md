@@ -39,6 +39,27 @@ In every trading turn, the engine processes intents in a specific order:
 - `bun run test-bun.ts`: Run a simulation turn (Agents evaluate market and trade).
 - `bun run test-history.ts`: View the performance history of all agents in the console.
 
+### 🐳 Running with Docker
+
+To run the entire stack (Database + App) locally using Docker Compose:
+
+1. **Development Mode (with Hot-Reloading)**:
+   ```bash
+   docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+   ```
+   *The app will be available at `http://localhost:8082`*
+
+2. **Initialize Database**:
+   If running for the first time, initialize the schema:
+   ```bash
+   docker exec -it stock_battle_app bun run db:init
+   ```
+
+3. **Production Mode**:
+   ```bash
+   docker compose up --build
+   ```
+
 ### Tech Stack
 - **Runtime**: Bun
 - **Frontend**: Next.js 15, Tailwind (v4), Recharts
