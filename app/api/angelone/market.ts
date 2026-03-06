@@ -45,8 +45,8 @@ export async function getAngelOneMarketData(): Promise<Stock[]> {
     try {
         const response = await api.post<MarketDataResponse>(API_ENDPOINTS.marketData, requestBody);
 
-        if (!response.data.status || !response.data.data) {
-            console.error("Angel One Market Data Error:", response.data.message);
+        if (!response.data.status || !response.data.data || !Array.isArray(response.data.data.fetched)) {
+            console.error("Angel One Market Data Error: Data or fetched array is missing", response.data.message);
             return [];
         }
 
@@ -63,11 +63,10 @@ export async function getAngelOneMarketData(): Promise<Stock[]> {
                 "day_change_%": item.percentChange || 0,
                 "52_week_high": item["52WeekHigh"] || item.high || 0,
                 "52_week_low": item["52WeekLow"] || item.low || 0,
-                current_volume: item.volume || item.totalQtyTraded || 0,
+                current_volume: item.tradeVolume || item.volume || 0,
                 current_day_high: item.high,
                 current_day_low: item.low,
-                daily_average_volume: item.avgVolume || item.volume || 0,
-                volatility: null,
+                daily_average_volume: item.tradeVolume || item.volume || 0, // Fallback to tradeVolume
                 "p/e_ratio": null,
                 eps: null
             };

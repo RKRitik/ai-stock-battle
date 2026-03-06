@@ -28,14 +28,15 @@ export interface MarketDataItemOHLC extends MarketDataItemLTP {
 export interface MarketDataItemFULL extends MarketDataItemOHLC {
     volume: number;
     percentChange: number;
-    lastTradedTime?: string;
+    tradeVolume?: number;
     avgPrice?: number;
-    totalQtyTraded?: number;
-    avgVolume?: number;
-    "52WeekHigh"?: number;
-    "52WeekLow"?: number;
+    netChange?: number;
+    totBuyQuan?: number;
+    totSellQuan?: number;
     upperCircuit?: number;
     lowerCircuit?: number;
+    "52WeekHigh"?: number;
+    "52WeekLow"?: number;
 }
 
 export type MarketDataResponse = AngelApiWrapper<{

@@ -7,17 +7,29 @@ import { API_ENDPOINTS } from './constants';
  */
 const ANGEL_ONE_BASE_URL = 'https://apiconnect.angelone.in';
 
-export const api = axios.create({
-    baseURL: ANGEL_ONE_BASE_URL,
-    headers: {
+const getAngelOneHeaders = () => {
+    const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'X-UserType': 'USER',
         'X-SourceID': 'WEB',
-        'X-ClientLocalIP': '192.168.1.1',
-        'X-ClientPublicIP': '0.0.0.0',
-        'X-MACAddress': '00:00:00:00:00:00'
-    },
+    };
+
+    if (process.env.ANGELONE_CLIENT_LOCAL_IP) {
+        headers['X-ClientLocalIP'] = process.env.ANGELONE_CLIENT_LOCAL_IP;
+    }
+    if (process.env.ANGELONE_CLIENT_PUBLIC_IP) {
+        headers['X-ClientPublicIP'] = process.env.ANGELONE_CLIENT_PUBLIC_IP;
+    }
+    if (process.env.ANGELONE_MAC_ADDRESS) {
+        headers['X-MACAddress'] = process.env.ANGELONE_MAC_ADDRESS;
+    }
+    return headers;
+};
+
+export const api = axios.create({
+    baseURL: ANGEL_ONE_BASE_URL,
+    headers: getAngelOneHeaders(),
 });
 
 // in memory cache
