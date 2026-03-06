@@ -33,12 +33,7 @@ export const api = axios.create({
         ...getAngelOneHeaders(),
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     },
-    timeout: 30000,
-    // Add proxy support if defined in .env
-    ...(process.env.PROXY_URL && {
-        proxy: false, // Tell axios not to use default proxy settings
-        httpsAgent: new (require('https-proxy-agent').HttpsProxyAgent)(process.env.PROXY_URL)
-    })
+    timeout: 30000
 });
 
 // in memory cache
