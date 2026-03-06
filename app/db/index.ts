@@ -1,7 +1,7 @@
 // Fallback stub for environments where Bun is not available (e.g. standard Node.js or edge without Bun globals)
-const sqlStub = (() => {
+const sqlStub: any = (() => {
     const errorMessage = "Bun is not defined or Bun.sql is unavailable. This application currently relies on the Bun runtime for database operations. To run this in a non-Bun environment, please wire a standard Node.js SQL client (like 'postgres' or 'pg').";
-    const stub = (..._args: any[]) => { throw new Error(errorMessage); };
+    const stub: any = (..._args: any[]) => { throw new Error(errorMessage); };
     stub.begin = (..._args: any[]) => { throw new Error(errorMessage); };
     stub.transaction = (..._args: any[]) => { throw new Error(errorMessage); };
     return stub;
@@ -74,7 +74,7 @@ export async function logAgentOutput(agent_id: string, output: string) {
 }
 
 export async function executeBuy(agent_id: string, ticker: string, qty: number, price: number, totalCost: number, log_id: number, newAvgPrice: number) {
-    await sql.begin(async (tx) => {
+    await sql.begin(async (tx: any) => {
         await tx`UPDATE agents SET balance = balance - ${totalCost} WHERE id = ${agent_id}`;
         await tx`INSERT INTO holdings (agent_id, symbol, qty, avg_buy_price, live_price) 
                  VALUES (${agent_id}, ${ticker}, ${qty}, ${newAvgPrice}, ${price})
@@ -87,7 +87,7 @@ export async function executeBuy(agent_id: string, ticker: string, qty: number, 
 }
 
 export async function executeSell(agent_id: string, ticker: string, qtyToSell: number, price: number, totalCredit: number, log_id?: number) {
-    await sql.begin(async (tx) => {
+    await sql.begin(async (tx: any) => {
         //get avg buy price and calculate realized pnl
         const [holding] = await tx`
             SELECT avg_buy_price 
