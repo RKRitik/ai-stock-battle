@@ -6,7 +6,7 @@ import type { OrderParams, TransactionType, OrderType, ProductType, OrderDuratio
 import { estimateCharges, type BrokerageOrder } from "../api/angelone/brokerage";
 
 export function normalizeTicker(ticker: string): string {
-    return ticker.replace(/^(NSE:|BSE:)/i, '').trim();
+    return ticker.trim().replace(/^(NSE:|BSE:)/i, '');
 }
 
 export async function estimateTransactionCharges(
