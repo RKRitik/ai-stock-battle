@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     qty INTEGER NOT NULL,
     price DOUBLE PRECISION NOT NULL,
     realized_pnl DECIMAL(15, 2) DEFAULT 0.00,
+    estimated_charges DECIMAL(15, 4) DEFAULT 0.00,
     time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

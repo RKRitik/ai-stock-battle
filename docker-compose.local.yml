@@ -6,9 +6,12 @@ services:
       target: builder
     image: ai-stock-battle:local
     command: bun run dev
+    ports:
+      - "127.0.0.1:8082:3000"
     environment:
       - NODE_ENV=development
       - WATCHPACK_POLLING=true
+      - DATABASE_URL=postgresql://dev_user:dev_password@172.20.0.3:5432/stock_battle
     volumes:
       - .:/app
       - /app/node_modules

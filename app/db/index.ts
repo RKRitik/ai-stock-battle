@@ -73,20 +73,20 @@ export async function logAgentOutput(agent_id: string, output: string) {
     return result[0].id as number;
 }
 
-export async function executeBuy(agent_id: string, ticker: string, qty: number, price: number, totalCost: number, log_id: number, newAvgPrice: number) {
+export async function executeBuy(agent_id: string, ticker: string, qty: number, price: number, totalCost: number, log_id: number, newAvgPrice: number, estimated_charges: number = 0) {
     await sql.begin(async (tx: any) => {
-        await tx`UPDATE agents SET balance = balance - ${totalCost} WHERE id = ${agent_id}`;
+        await tx`UPDATE agents SET balance = balance - ${totalCost} - ${estimated_charges} WHERE id = ${agent_id}`;
         await tx`INSERT INTO holdings (agent_id, symbol, qty, avg_buy_price, live_price) 
                  VALUES (${agent_id}, ${ticker}, ${qty}, ${newAvgPrice}, ${price})
                  ON CONFLICT (agent_id, symbol)
                  DO UPDATE SET qty = holdings.qty + EXCLUDED.qty, avg_buy_price = EXCLUDED.avg_buy_price, live_price = EXCLUDED.live_price`;
-        await tx`INSERT INTO transactions (agent_id, symbol, side, qty, price, log_id)
-                 VALUES (${agent_id}, ${ticker}, 'BUY', ${qty}, ${price}, ${log_id || null})`
+        await tx`INSERT INTO transactions (agent_id, symbol, side, qty, price, estimated_charges, log_id)
+                 VALUES (${agent_id}, ${ticker}, 'BUY', ${qty}, ${price}, ${estimated_charges}, ${log_id || null})`
         await tx`UPDATE holdings SET live_price = ${price} WHERE symbol = ${ticker}`;
     });
 }
 
-export async function executeSell(agent_id: string, ticker: string, qtyToSell: number, price: number, totalCredit: number, log_id?: number) {
+export async function executeSell(agent_id: string, ticker: string, qtyToSell: number, price: number, totalCredit: number, log_id?: number, estimated_charges: number = 0) {
     await sql.begin(async (tx: any) => {
         //get avg buy price and calculate realized pnl
         const [holding] = await tx`
@@ -97,11 +97,11 @@ export async function executeSell(agent_id: string, ticker: string, qtyToSell: n
         `;
         const avgBuyPrice = Number(holding?.avg_buy_price ?? 0);
         const realizedPnl = (price - avgBuyPrice) * qtyToSell;
-        await tx`UPDATE agents SET balance = balance + ${totalCredit} WHERE id = ${agent_id}`;
+        await tx`UPDATE agents SET balance = balance + ${totalCredit} - ${estimated_charges} WHERE id = ${agent_id}`;
         await tx`UPDATE holdings SET qty = qty - ${qtyToSell}, live_price = ${price} WHERE agent_id = ${agent_id} AND symbol = ${ticker}`;
         await tx`DELETE FROM holdings WHERE agent_id = ${agent_id} AND symbol = ${ticker} AND qty <= 0`;
-        await tx`INSERT INTO transactions (agent_id, symbol, side, qty, price, realized_pnl, log_id)
-                 VALUES (${agent_id}, ${ticker}, 'SELL', ${qtyToSell}, ${price}, ${realizedPnl}, ${log_id || null})`;
+        await tx`INSERT INTO transactions (agent_id, symbol, side, qty, price, realized_pnl, estimated_charges, log_id)
+                 VALUES (${agent_id}, ${ticker}, 'SELL', ${qtyToSell}, ${price}, ${realizedPnl}, ${estimated_charges}, ${log_id || null})`;
         await tx`UPDATE holdings SET live_price = ${price} WHERE symbol = ${ticker}`;
     });
 }

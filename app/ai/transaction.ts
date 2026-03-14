@@ -1,6 +1,81 @@
 import { cleanResponse, round2 } from "@/lib/utils";
 import { agentResponseSchema, Stock } from "../schema";
 import { getAgent, getHoldings, executeBuy, executeSell, logAgentOutput, recordAgentHoldingsSnapshot } from "../db";
+import { STOCK_MAP } from "../api/angelone/market";
+import type { OrderParams, TransactionType, OrderType, ProductType, OrderDuration, Exchange } from "../api/angelone/order";
+import { estimateCharges, type BrokerageOrder } from "../api/angelone/brokerage";
+
+export function normalizeTicker(ticker: string): string {
+    return ticker.replace(/^(NSE:|BSE:)/i, '').trim();
+}
+
+export async function estimateTransactionCharges(
+    ticker: string,
+    action: "BUY" | "SELL",
+    qty: number,
+    price: number,
+    productType: "DELIVERY" | "INTRADAY" = "DELIVERY"
+): Promise<number> {
+    const normalizedTicker = normalizeTicker(ticker);
+    const stockInfo = STOCK_MAP[normalizedTicker];
+    if (!stockInfo) {
+        console.warn(`No stock mapping found for ${normalizedTicker}, returning 0 charges`);
+        return 0;
+    }
+
+    const order: BrokerageOrder = {
+        product_type: productType,
+        transaction_type: action,
+        quantity: String(qty),
+        price: String(price),
+        exchange: "NSE",
+        symbol_name: stockInfo.symbol,
+        token: stockInfo.token,
+    };
+
+    try {
+        const response = await estimateCharges([order]);
+        if (response.status && response.data?.summary?.total_charges) {
+            return round2(response.data.summary.total_charges);
+        }
+        console.warn(`Failed to estimate charges for ${normalizedTicker}:`, response.message);
+        return 0;
+    } catch (error) {
+        console.error(`Error estimating charges for ${normalizedTicker}:`, error);
+        return 0;
+    }
+}
+
+export function createAngelOneOrderPayload(
+    ticker: string,
+    action: "BUY" | "SELL",
+    qty: number,
+    price: number,
+    orderType: OrderType = "MARKET",
+    productType: ProductType = "DELIVERY"
+): OrderParams | null {
+    const normalizedTicker = normalizeTicker(ticker);
+    const stockInfo = STOCK_MAP[normalizedTicker];
+    if (!stockInfo) {
+        console.error(`No Angel One mapping found for ticker: ${ticker}`);
+        return null;
+    }
+
+    const payload: OrderParams = {
+        variety: "NORMAL",
+        tradingsymbol: stockInfo.symbol,
+        symboltoken: stockInfo.token,
+        transactiontype: action as TransactionType,
+        exchange: "NSE" as Exchange,
+        ordertype: orderType,
+        producttype: productType,
+        duration: "DAY" as OrderDuration,
+        price: price,
+        quantity: qty,
+    };
+
+    return payload;
+}
 
 export async function doTransaction(agent_id: string, responseString: string, stocksData: Stock[]) {
     const agent = await getAgent(agent_id);
@@ -40,10 +115,11 @@ export async function doTransaction(agent_id: string, responseString: string, st
         // fetch fresh holdings for each intent to account for previous actions in the loop
         const currentHoldings = await getHoldings(agent_id);
         const { action, ticker, allocation } = intent;
-        const stock = stocksData.find(s => s.ticker === ticker);
+        const normalizedTicker = normalizeTicker(ticker);
+        const stock = stocksData.find(s => s.ticker === normalizedTicker);
 
         if (!stock) {
-            console.error(`Stock ${ticker} not found in market data`);
+            console.error(`Stock ${ticker} (normalized: ${normalizedTicker}) not found in market data`);
             continue;
         }
 
@@ -60,28 +136,55 @@ export async function doTransaction(agent_id: string, responseString: string, st
 
             if (qty > 0) {
                 // 1. Find if we already own this stock
-                const existingHolding = currentHoldings.find(h => h.symbol === ticker);
+                const existingHolding = currentHoldings.find(h => normalizeTicker(h.symbol) === normalizedTicker);
                 const oldQty = existingHolding?.qty || 0;
                 const oldAvg = Number(existingHolding?.avg_buy_price) || 0;
+                
+                // Estimate brokerage/charges for this trade FIRST
+                const estimatedCharges = await estimateTransactionCharges(normalizedTicker, "BUY", qty, price, "DELIVERY");
                 const totalCost = round2(qty * price);
+                const totalWithCharges = round2(totalCost + estimatedCharges);
+
+                // Re-check: can we afford (cost + charges)?
+                if (totalWithCharges > currentBalance) {
+                    // Recalculate max qty we can afford including charges
+                    qty = Math.floor((currentBalance - estimatedCharges) / price);
+                    if (qty <= 0) {
+                        console.info(`[SKIP] BUY for ${agent.name}: Not enough balance for ${normalizedTicker} (Price: ₹${price}, Charges: ₹${estimatedCharges})`);
+                        continue;
+                    }
+                    // Recalculate costs with new qty
+                    const newTotalCost = round2(qty * price);
+                    const newTotalWithCharges = round2(newTotalCost + estimatedCharges);
+                    currentBalance = round2(currentBalance - newTotalWithCharges);
+                } else {
+                    currentBalance = round2(currentBalance - totalWithCharges);
+                }
 
                 // 2. Calculate the New Weighted Average
                 const newTotalQty = oldQty + qty;
                 const newAvgBuyPrice = round2(((oldQty * oldAvg) + (qty * price)) / newTotalQty);
+                
                 try {
-                    await executeBuy(agent_id, ticker, qty, price, totalCost, logId, newAvgBuyPrice);
-                    currentBalance = round2(currentBalance - totalCost);
-                    console.log(`[BUY] Agent ${agent.name} bought ${qty} shares of ${ticker} at ${price} (Allocation: ${allocation}%) New Avg Price: ${newAvgBuyPrice}`);
+                    await executeBuy(agent_id, normalizedTicker, qty, price, round2(qty * price), logId, newAvgBuyPrice, estimatedCharges);
+                    
+                    // Generate Angel One order payload (for simulation/future live trading)
+                    const orderPayload = createAngelOneOrderPayload(normalizedTicker, "BUY", qty, price);
+                    if (orderPayload) {
+                        console.log(`[ANGEL_ONE_ORDER] ${JSON.stringify(orderPayload)}`);
+                    }
+                    
+                    console.log(`[BUY] Agent ${agent.name} bought ${qty} shares of ${normalizedTicker} at ${price} (Charges: ₹${estimatedCharges}) New Avg Price: ${newAvgBuyPrice}`);
                 } catch (err) {
-                    console.error(`Failed to execute BUY ${qty} shares of ${ticker} for ${agent.name}:`, err);
+                    console.error(`Failed to execute BUY ${qty} shares of ${normalizedTicker} for ${agent.name}:`, err);
                 }
             } else {
                 console.info(`[SKIP] BUY for ${agent.name}: Allocation (${allocation}%) of ${initialBalance} is less than stock price ${price}`);
             }
         } else if (action === "SELL") {
-            const holding = currentHoldings.find(h => h.symbol === ticker);
+            const holding = currentHoldings.find(h => normalizeTicker(h.symbol) === normalizedTicker);
             if (!holding || holding.qty === 0) {
-                console.warn(`[SKIP] Agent ${agent.name} has no holdings for ${ticker} to sell`);
+                console.warn(`[SKIP] Agent ${agent.name} has no holdings for ${normalizedTicker} to sell`);
                 continue;
             }
 
@@ -92,12 +195,23 @@ export async function doTransaction(agent_id: string, responseString: string, st
             }
             if (qtyToSell > 0) {
                 const totalCredit = round2(qtyToSell * price);
+                
+                // Estimate brokerage/charges for this trade
+                const estimatedCharges = await estimateTransactionCharges(normalizedTicker, "SELL", qtyToSell, price, "DELIVERY");
+                
                 try {
-                    await executeSell(agent_id, ticker, qtyToSell, price, totalCredit, logId);
-                    currentBalance = round2(currentBalance + totalCredit);
-                    console.log(`[SELL] Agent ${agent.name} sold ${qtyToSell} shares of ${ticker} at ${price} (Allocation: ${allocation}%)`);
+                    await executeSell(agent_id, normalizedTicker, qtyToSell, price, totalCredit, logId, estimatedCharges);
+                    currentBalance = round2(currentBalance + totalCredit - estimatedCharges);
+                    
+                    // Generate Angel One order payload (for simulation/future live trading)
+                    const orderPayload = createAngelOneOrderPayload(normalizedTicker, "SELL", qtyToSell, price);
+                    if (orderPayload) {
+                        console.log(`[ANGEL_ONE_ORDER] ${JSON.stringify(orderPayload)}`);
+                    }
+                    
+                    console.log(`[SELL] Agent ${agent.name} sold ${qtyToSell} shares of ${normalizedTicker} at ${price} (Charges: ₹${estimatedCharges})`);
                 } catch (err) {
-                    console.error(`Failed to execute SELL ${qtyToSell} shares of ${ticker} for ${agent.name}:`, err);
+                    console.error(`Failed to execute SELL ${qtyToSell} shares of ${normalizedTicker} for ${agent.name}:`, err);
                 }
             } else {
                 console.info(`[SKIP] SELL for ${agent.name}: Allocation (${allocation}%) of ${holding.qty} shares results in 0 shares.`);
@@ -115,7 +229,8 @@ export async function doTransaction(agent_id: string, responseString: string, st
     let missingStocksValue = false;
 
     finalHoldings.forEach(holding => {
-        const stock = stocksData.find(s => s.ticker === holding.symbol);
+        const normalizedHoldingSymbol = normalizeTicker(holding.symbol);
+        const stock = stocksData.find(s => s.ticker === normalizedHoldingSymbol);
         if (stock) {
             stocks_price += holding.qty * stock.live_price;
         } else {

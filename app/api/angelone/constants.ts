@@ -2,5 +2,15 @@ export const API_ENDPOINTS = {
     login: "/rest/auth/angelbroking/user/v1/loginByPassword",
     generateToken: "/rest/auth/angelbroking/jwt/v1/generateTokens",
     profile: "/rest/secure/angelbroking/user/v1/getProfile",
-    marketData: "/rest/secure/angelbroking/market/v1/quote"
+    logout: "/rest/secure/angelbroking/user/v1/logout",
+    rms: "/rest/secure/angelbroking/user/v1/getRMS",
+    marketData: "/rest/secure/angelbroking/market/v1/quote",
+    placeOrder: "/rest/secure/angelbroking/order/v1/placeOrder",
+    modifyOrder: "/rest/secure/angelbroking/order/v1/modifyOrder",
+    cancelOrder: "/rest/secure/angelbroking/order/v1/cancelOrder",
+    orderBook: "/rest/secure/angelbroking/order/v1/getOrderBook",
+    tradeBook: "/rest/secure/angelbroking/order/v1/getTradeBook",
+    ltpData: "/rest/secure/angelbroking/order/v1/getLtpData",
+    brokerage: "/rest/secure/angelbroking/brokerage/v1/estimateCharges",
+    margin: "/rest/secure/angelbroking/margin/v1/batch",
 }
