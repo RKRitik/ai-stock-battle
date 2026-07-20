@@ -14,6 +14,11 @@ services:
       - ./init-db:/docker-entrypoint-initdb.d
   app:
     image: ghcr.io/rkritik/ai-stock-battle:latest
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     container_name: stock_battle_app
     restart: always
     platform: linux/amd64
