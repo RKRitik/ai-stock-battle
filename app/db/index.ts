@@ -70,14 +70,20 @@ export async function getHoldings(agent_id: string): Promise<Holding[]> {
 
 export async function getHoldingsForAgents(agentIds: string[]): Promise<Holding[]> {
     if (agentIds.length === 0) return [];
-    const agentIdsLit = `{${agentIds.join(",")}}`;
-    const response = await sql`SELECT * from holdings where agent_id = ANY(${agentIdsLit}::uuid[])`;
-    const parsed = holdingSchema.array().safeParse(response);
-    if (!parsed.success) {
-        console.log(parsed.error.issues);
-        return [];
+    try {
+        const agentIdsLit = `{${agentIds.join(",")}}`;
+        const response = await sql`SELECT * from holdings where agent_id = ANY(${agentIdsLit}::uuid[])`;
+        const parsed = holdingSchema.array().safeParse(response);
+        if (!parsed.success) {
+            console.log(parsed.error.issues);
+            return [];
+        }
+        return parsed.data;
+    } catch (e) {
+        console.warn("Batch holdings query failed, falling back to individual queries:", e);
+        const results = await Promise.all(agentIds.map(id => getHoldings(id)));
+        return results.flat();
     }
-    return parsed.data;
 }
 
 export async function logAgentOutput(agent_id: string, output: string) {
@@ -216,35 +222,48 @@ export async function getAgentPerformanceMarkers(agent_id: string) {
 
 export async function getAgentPerformanceMarkersForAgents(agentIds: string[]): Promise<Map<string, { initial_wealth: number; start_of_day_wealth: number }>> {
     if (agentIds.length === 0) return new Map();
-    const agentIdsLit = `{${agentIds.join(",")}}`;
-    const stats = await sql`
-        WITH initial AS (
-            SELECT DISTINCT ON (agent_id) agent_id, balance
-            FROM holdings_history
-            WHERE agent_id = ANY(${agentIdsLit}::uuid[])
-            ORDER BY agent_id, time ASC
-        ),
-        start_of_day AS (
-            SELECT DISTINCT ON (agent_id) agent_id, (balance + stocks_price) as wealth
-            FROM holdings_history
-            WHERE agent_id = ANY(${agentIdsLit}::uuid[]) AND time < CURRENT_DATE
-            ORDER BY agent_id, time DESC
-        )
-        SELECT
-            i.agent_id,
-            i.balance as initial_wealth,
-            COALESCE(s.wealth, i.balance) as start_of_day_wealth
-        FROM initial i
-        LEFT JOIN start_of_day s ON i.agent_id = s.agent_id;
-    `;
-    const parsed = agentPerformanceMarkersWithAgentSchema.array().safeParse(stats);
-    if (!parsed.success) {
-        console.log(parsed.error.issues);
-        return new Map();
+    try {
+        const agentIdsLit = `{${agentIds.join(",")}}`;
+        const stats = await sql`
+            WITH initial AS (
+                SELECT DISTINCT ON (agent_id) agent_id, balance
+                FROM holdings_history
+                WHERE agent_id = ANY(${agentIdsLit}::uuid[])
+                ORDER BY agent_id, time ASC
+            ),
+            start_of_day AS (
+                SELECT DISTINCT ON (agent_id) agent_id, (balance + stocks_price) as wealth
+                FROM holdings_history
+                WHERE agent_id = ANY(${agentIdsLit}::uuid[]) AND time < CURRENT_DATE
+                ORDER BY agent_id, time DESC
+            )
+            SELECT
+                i.agent_id,
+                i.balance as initial_wealth,
+                COALESCE(s.wealth, i.balance) as start_of_day_wealth
+            FROM initial i
+            LEFT JOIN start_of_day s ON i.agent_id = s.agent_id;
+        `;
+        const parsed = agentPerformanceMarkersWithAgentSchema.array().safeParse(stats);
+        if (!parsed.success) {
+            console.log(parsed.error.issues);
+            return new Map();
+        }
+        const map = new Map<string, { initial_wealth: number; start_of_day_wealth: number }>();
+        for (const marker of parsed.data) {
+            map.set(marker.agent_id, marker);
+        }
+        return map;
+    } catch (e) {
+        console.warn("Batch performance markers query failed, falling back to individual queries:", e);
+        const results = await Promise.all(agentIds.map(async (id) => {
+            const marker = await getAgentPerformanceMarkers(id);
+            return { id, marker };
+        }));
+        const map = new Map<string, { initial_wealth: number; start_of_day_wealth: number }>();
+        for (const { id, marker } of results) {
+            map.set(id, marker || { initial_wealth: 0, start_of_day_wealth: 0 });
+        }
+        return map;
     }
-    const map = new Map<string, { initial_wealth: number; start_of_day_wealth: number }>();
-    for (const marker of parsed.data) {
-        map.set(marker.agent_id, marker);
-    }
-    return map;
 }
