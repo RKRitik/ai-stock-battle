@@ -70,7 +70,8 @@ export async function getHoldings(agent_id: string): Promise<Holding[]> {
 
 export async function getHoldingsForAgents(agentIds: string[]): Promise<Holding[]> {
     if (agentIds.length === 0) return [];
-    const response = await sql`SELECT * from holdings where agent_id = ANY(${sql.array(agentIds)}::uuid[])`;
+    const agentIdsLit = `{${agentIds.join(",")}}`;
+    const response = await sql`SELECT * from holdings where agent_id = ANY(${agentIdsLit}::uuid[])`;
     const parsed = holdingSchema.array().safeParse(response);
     if (!parsed.success) {
         console.log(parsed.error.issues);
@@ -215,17 +216,18 @@ export async function getAgentPerformanceMarkers(agent_id: string) {
 
 export async function getAgentPerformanceMarkersForAgents(agentIds: string[]): Promise<Map<string, { initial_wealth: number; start_of_day_wealth: number }>> {
     if (agentIds.length === 0) return new Map();
+    const agentIdsLit = `{${agentIds.join(",")}}`;
     const stats = await sql`
         WITH initial AS (
             SELECT DISTINCT ON (agent_id) agent_id, balance
             FROM holdings_history
-            WHERE agent_id = ANY(${sql.array(agentIds)}::uuid[])
+            WHERE agent_id = ANY(${agentIdsLit}::uuid[])
             ORDER BY agent_id, time ASC
         ),
         start_of_day AS (
             SELECT DISTINCT ON (agent_id) agent_id, (balance + stocks_price) as wealth
             FROM holdings_history
-            WHERE agent_id = ANY(${sql.array(agentIds)}::uuid[]) AND time < CURRENT_DATE
+            WHERE agent_id = ANY(${agentIdsLit}::uuid[]) AND time < CURRENT_DATE
             ORDER BY agent_id, time DESC
         )
         SELECT
