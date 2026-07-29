@@ -1,6 +1,8 @@
 import { getLastInvocations } from "@/app/db";
 import { getAgentColor } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function AgentResponses() {
     const responses = await getLastInvocations();
     return <div className="space-y-3 pr-2">

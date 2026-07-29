@@ -134,3 +134,11 @@ export const agentPerformanceMarkersSchema = z.object({
 });
 
 export type AgentPerformanceMarkers = z.infer<typeof agentPerformanceMarkersSchema>;
+
+export const agentPerformanceMarkersWithAgentSchema = z.object({
+    agent_id: z.string(),
+    initial_wealth: z.coerce.number(),
+    start_of_day_wealth: z.coerce.number(),
+});
+
+export type AgentPerformanceMarkersWithAgent = z.infer<typeof agentPerformanceMarkersWithAgentSchema>;
