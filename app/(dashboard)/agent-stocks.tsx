@@ -1,6 +1,8 @@
 import { getAgents, getHoldings } from '../db'
 import AgentStocksClient from './agent-stocks-client';
 
+export const dynamic = "force-dynamic";
+
 export default async function AgentStocks() {
     const agents = await getAgents();
 

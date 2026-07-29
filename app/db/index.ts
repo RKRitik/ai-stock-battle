@@ -8,7 +8,7 @@ const sqlStub: any = (() => {
 })();
 
 const sql = typeof Bun !== 'undefined' ? Bun.sql : (sqlStub as any);
-import { Stock, stocksResponseSchema, Agent, agentSchema, holdingSchema, holdingsHistorySchema, Holding, transactionSchema, transactionsWithAgentSchema, HistoryRow, outputsWithAgentSchema, agentPerformanceMarkersSchema } from "../schema";
+import { Stock, stocksResponseSchema, Agent, agentSchema, holdingSchema, holdingsHistorySchema, Holding, transactionSchema, transactionsWithAgentSchema, HistoryRow, outputsWithAgentSchema, agentPerformanceMarkersSchema, agentPerformanceMarkersWithAgentSchema } from "../schema";
 import { getAngelOneMarketData } from "../api/angelone/market";
 
 export async function getAgents(): Promise<Agent[]> {
@@ -60,6 +60,17 @@ export async function getStocksData(): Promise<{ status: boolean, data: Stock[] 
 
 export async function getHoldings(agent_id: string): Promise<Holding[]> {
     const response = await sql`SELECT * from holdings where agent_id = ${agent_id}`;
+    const parsed = holdingSchema.array().safeParse(response);
+    if (!parsed.success) {
+        console.log(parsed.error.issues);
+        return [];
+    }
+    return parsed.data;
+}
+
+export async function getHoldingsForAgents(agentIds: string[]): Promise<Holding[]> {
+    if (agentIds.length === 0) return [];
+    const response = await sql`SELECT * from holdings where agent_id = ANY(${agentIds})`;
     const parsed = holdingSchema.array().safeParse(response);
     if (!parsed.success) {
         console.log(parsed.error.issues);
@@ -200,4 +211,38 @@ export async function getAgentPerformanceMarkers(agent_id: string) {
         return null;
     }
     return parsed.data;
+}
+
+export async function getAgentPerformanceMarkersForAgents(agentIds: string[]): Promise<Map<string, { initial_wealth: number; start_of_day_wealth: number }>> {
+    if (agentIds.length === 0) return new Map();
+    const stats = await sql`
+        WITH initial AS (
+            SELECT DISTINCT ON (agent_id) agent_id, balance
+            FROM holdings_history
+            WHERE agent_id = ANY(${agentIds})
+            ORDER BY agent_id, time ASC
+        ),
+        start_of_day AS (
+            SELECT DISTINCT ON (agent_id) agent_id, (balance + stocks_price) as wealth
+            FROM holdings_history
+            WHERE agent_id = ANY(${agentIds}) AND time < CURRENT_DATE
+            ORDER BY agent_id, time DESC
+        )
+        SELECT
+            i.agent_id,
+            i.balance as initial_wealth,
+            COALESCE(s.wealth, i.balance) as start_of_day_wealth
+        FROM initial i
+        LEFT JOIN start_of_day s ON i.agent_id = s.agent_id;
+    `;
+    const parsed = agentPerformanceMarkersWithAgentSchema.array().safeParse(stats);
+    if (!parsed.success) {
+        console.log(parsed.error.issues);
+        return new Map();
+    }
+    const map = new Map<string, { initial_wealth: number; start_of_day_wealth: number }>();
+    for (const marker of parsed.data) {
+        map.set(marker.agent_id, marker);
+    }
+    return map;
 }

@@ -1,13 +1,11 @@
 import AgentsDashboard from "./(dashboard)/agents-dashboard";
 import { Suspense } from "react";
 import RecentTransactions from "./(dashboard)/recent-transactions";
-import HistoryDashboard from "./(dashboard)/history-dashboard";
 import AgentResponses from "./(dashboard)/responses-dashboard";
 import AgentStocks from "./(dashboard)/agent-stocks";
+import HistoryDashboard from "./(dashboard)/history-dashboard-wrapper";
 import { Card } from "@/components/ui/card";
 import { ModeToggle } from "@/components/mode-toggle";
-
-export const dynamic = "force-dynamic";
 
 export default function Home() {
   return (
@@ -43,7 +41,7 @@ export default function Home() {
               <span className="w-2 h-2 rounded-full bg-primary" />
               Total Wealth Over Time
             </h2>
-            <Suspense fallback={<SkeletonCard />}><HistoryDashboard /></Suspense>
+            <HistoryDashboard />
           </Card>
         </div>
 

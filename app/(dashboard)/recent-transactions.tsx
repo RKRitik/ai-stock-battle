@@ -2,6 +2,8 @@ import { getLastTransactions } from "@/app/db";
 import { Badge } from "@/components/ui/badge";
 import { getAgentColor } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function TransactionsDashboard() {
     const transactions = await getLastTransactions();
     return (

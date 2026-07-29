@@ -1,13 +1,29 @@
-import { getAgentPerformanceMarkers, getAgents, getHoldings, getStocksData } from "@/app/db";
+import { getAgentPerformanceMarkersForAgents, getAgents, getHoldingsForAgents } from "@/app/db";
 import { getAgentColor } from "@/lib/utils";
+import type { Holding } from "@/app/schema";
+
+export const dynamic = "force-dynamic";
 
 export default async function AgentsDashboard() {
     const agents = await getAgents();
+    const agentIds = agents.map(a => a.id);
 
-    const agentsData = await Promise.all(agents.map(async (agent) => {
-        const holdings = await getHoldings(agent.id);
+    const [allHoldings, markersMap] = await Promise.all([
+        getHoldingsForAgents(agentIds),
+        getAgentPerformanceMarkersForAgents(agentIds),
+    ]);
+
+    const holdingsByAgent = new Map<string, Holding[]>();
+    for (const h of allHoldings) {
+        const group = holdingsByAgent.get(h.agent_id);
+        if (group) group.push(h);
+        else holdingsByAgent.set(h.agent_id, [h]);
+    }
+
+    const agentsData = agents.map((agent) => {
+        const holdings = holdingsByAgent.get(agent.id) || [];
         const portfolioValue = holdings.reduce((acc, h) => acc + (h.qty * h.live_price), 0);
-        const stats = await getAgentPerformanceMarkers(agent.id) || { initial_wealth: agent.balance, start_of_day_wealth: agent.balance };
+        const stats = markersMap.get(agent.id) || { initial_wealth: agent.balance, start_of_day_wealth: agent.balance };
 
         const totalWealth = agent.balance + portfolioValue;
         const todayPnL = totalWealth - stats.start_of_day_wealth;
@@ -22,7 +38,7 @@ export default async function AgentsDashboard() {
             todayPnL,
             todayChangePercent,
         };
-    }));
+    });
 
     return (
         <div className="space-y-3">
