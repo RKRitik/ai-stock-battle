@@ -7,6 +7,8 @@ import HistoryDashboard from "./(dashboard)/history-dashboard-wrapper";
 import { Card } from "@/components/ui/card";
 import { ModeToggle } from "@/components/mode-toggle";
 
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-background relative overflow-hidden selection:bg-primary/20">
